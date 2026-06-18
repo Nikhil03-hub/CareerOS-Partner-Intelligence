@@ -1,3 +1,61 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+backend/venv/
+backend/.env
+frontend/.env.local
+
+# Build
+build/
+dist/
+.next/
+out/
+frontend/build/
+
+# Cache
+.cache/
+.eslintcache
+.turbo/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Env
+.env
+.env.local
+.env.*.local
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials
+
+
 # Logs
 logs
 *.log

@@ -1,0 +1,52 @@
+{
+  "summary": "CareerOS v2 full backend + frontend regression. Backend pytest: 29/32 PASS (only failures are DSA_TOTAL=438 vs spec-required 455 — actual sum of STRIVER_TOPICS problems is 438, the inline comment in seed_data.py incorrectly says 455). All 6 role logins set httpOnly session_token cookie, /auth/me works, role-based redirect map lands each demo on the correct workspace (admin→/platform, tpo→/tpo, student→/student, faculty→/faculty, recruiter→/recruiter, institution→/institution). Cross-role 403 enforced (tpo cannot hit /api/admin/*; tpo cannot read another institution's MOU). Student personal dashboard, DSA toggle, Striver tracker UI (19 topic cards, +/-), Platform Control KPIs, Application pipeline + stage PATCH, Talent Pool (recruiter-only), Announcements + notification fan-out, Admin approval flow (Vasavi pending → approved) all working end-to-end. The v1 demo-login → /app/overview SPA bug from iteration_1 is FIXED (Login.jsx now refreshes auth context before navigate).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/dsa/topics & /api/me/dashboard & /api/dsa/intelligence", "issue": "DSA_TOTAL returns 438 but spec/comment says 455. seed_data.py STRIVER_TOPICS problem counts sum to 438; the inline comment '# 455' is misleading. Either bump topic.problems values to total 455, or update spec/UI copy to 438."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "TPO Overview hero (Overview.jsx)", "issue": "Greeting renders as 'Good morning, Dr..' — the user's full name 'Dr. Neil Gogte' is being truncated/split; likely splitting on first '.' or first whitespace which strips the rest. Cosmetic.", "selector": "h1 in mission-control card", "priority": "LOW"},
+      {"component": "TPO Overview KPI right card", "issue": "Top-right ₹80L card has very low-contrast/ghost text underneath the headline (overlapping faded labels '75% / 84 / 70'). Looks like a layered design but reads as garbled. Verify intent.", "selector": "[data-testid='kpi-top-right'] (no testid present)", "priority": "LOW"},
+      {"component": "Landing.jsx", "issue": "Hero stat shows '7 institutions' instead of '6' after backend tests ran (Vasavi pending account got approved by test_admin_pending_and_approve and counts in landing-stats totals.institutions). The seed value is 6; once approved it becomes 7. Not a frontend bug per se, but a demo-data hygiene issue — consider not approving Vasavi during automated test runs, or reseed for demos.", "selector": "landing hero stats", "priority": "LOW"},
+      {"component": "Landing sections", "issue": "Spec mentions §01–§05 markers; literal '§01'..'§05' text not found in landing DOM (sections render but with different labels). Add data-testid='section-story|modules|decade|recruiters|cta' for stable automation.", "selector": "section markers", "priority": "LOW"},
+      {"component": "PlatformControl KPIs", "issue": "KPI cards have no data-testid='kpi-*' attributes — test selectors returned 0. Cards do render correctly (institutions, pending, students, jobs, applications, MRR all visible). Add testids for QA.", "selector": "[data-testid^='kpi-']", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "TPO Overview hero card", "issues": ["Faded overlay text behind ₹80L creates visual noise; ensure contrast ratio meets WCAG"]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_careeros_v2.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "Fix DSA_TOTAL = 455 mismatch: either adjust STRIVER_TOPICS.problems counts to sum to 455, or update spec text to 438 (current actual). The 19 topics & codes are correct.",
+    "Trim or escape the user name split in TPO Overview greeting so 'Dr. Neil Gogte' renders fully instead of 'Dr..'.",
+    "Add data-testid='kpi-institutions', 'kpi-pending', 'kpi-students', 'kpi-jobs', 'kpi-applications', 'kpi-mrr' on PlatformControl KPI cards.",
+    "Add data-testid='section-story|modules|decade|recruiters|cta' on Landing sections for future regression tests.",
+    "Optional: Make admin approval test idempotent (reseed Vasavi to approved=false in conftest teardown) so landing 'institutions=6' stays canonical for demos."
+  ],
+  "critical_code_review_comments": [
+    "seed_data.py: STRIVER_TOPICS sum=438 but inline comment claims 455 → spec drift; either source of truth needs to win.",
+    "server.py: CORS now uses allow_origin_regex='.*' + allow_credentials=True — works in browsers and is a correct fix vs the v1 wildcard issue.",
+    "server.py @app.on_event('startup') still uses the deprecated startup event; lifespan handlers preferred (not a failure).",
+    "server.py /api/students POST still accepts a raw dict — no Pydantic validation; could be hardened.",
+    "Overview.jsx greeting splits on '.' or whitespace truncating 'Dr. Neil Gogte' to 'Dr..'.",
+    "PlatformControl.jsx KPI cards lack data-testid attributes for QA automation."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_careeros_v2.py (created — 32 tests covering v2 endpoints)",
+    "/app/backend/tests/test_careeros_backend.py (deleted — v1 obsolete)"
+  ],
+  "success_rate": {"backend": "91% (29/32 — 3 fails all on DSA_TOTAL mismatch)", "frontend": "~95% — all role logins, role-isolation, student DSA tracker (19/19 +/- buttons clickable), platform admin, TPO sidebar nav all working"},
+  "test_credentials": "All 6 demo accounts: admin@careeros.app, institution@kmit.in, tpo@kmit.in, faculty@kmit.in, student@kmit.in, recruiter@amazon.com + tpo@vasavi.ac.in (pending). Password 'careeros2026' for all.",
+  "seed_data_creation": "Backend test created 1 TEST_ announcement and approved the Vasavi pending user (this persists — Vasavi now shows approved=true in DB; landing stat shifts 6→7 institutions). If demo polish requires institutions=6, reseed or manually flip Vasavi back to approved=false.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "v2 backend test suite at /app/backend/tests/test_careeros_v2.py is the regression baseline (the v1 file was deleted). Demo accounts use bcrypt-hashed passwords seeded at startup. Vasavi pending account is permanently approved after the admin_pending_and_approve test runs — drop careeros_campus DB and restart backend to fully reset. KPI testids missing on PlatformControl is the only blocker for tighter UI assertions.",
+  "rca of the issue": "DSA_TOTAL=438 vs spec 455: seed_data.py STRIVER_TOPICS list has per-topic 'problems' values that sum to 14+7+40+32+7+31+25+18+30+12+17+16+39+16+54+56+7+9+8 = 438. The trailing comment '# 455' is wrong; the constant DSA_TOTAL is computed correctly from the list but the list's per-topic numbers don't add to 455. Fix: bump 1-2 topic values (e.g. ARRAYS 40→55, GRAPH 54→56, DP 56→58 etc.) so the sum equals 455, OR accept 438 as the canonical Striver total and update spec/landing copy. Same value flows through to /api/me/dashboard.dsa_total and /api/dsa/intelligence.total_problems."
+}

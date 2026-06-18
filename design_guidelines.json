@@ -1,0 +1,184 @@
+{
+  "theme": "light",
+  "archetype": "Archetype 4 (Swiss & High-Contrast) + Editorial Future",
+  "vibe": "Premium, investor-ready, $100M VC-backed SaaS, cinematic, authoritative.",
+  "colors": {
+    "background": {
+      "primary": "#F7F7F4",
+      "secondary": "#EAEAE6",
+      "tertiary": "#FFFFFF"
+    },
+    "surface": {
+      "card": "#FFFFFF",
+      "glass": "rgba(255, 255, 255, 0.7)",
+      "inverted": "#111111"
+    },
+    "text": {
+      "primary": "#111111",
+      "secondary": "#555555",
+      "tertiary": "#888888",
+      "inverted": "#F7F7F4"
+    },
+    "brand": {
+      "primary": "#111111",
+      "signature_accent": "#FF3B00",
+      "signature_accent_hover": "#E03400",
+      "muted_accent": "#FFD7CC"
+    },
+    "status": {
+      "success": "#027A48",
+      "warning": "#DC6803",
+      "error": "#B42318",
+      "info": "#026AA2"
+    },
+    "border": {
+      "default": "rgba(17, 17, 17, 0.1)",
+      "focus": "#111111"
+    }
+  },
+  "typography": {
+    "fonts": {
+      "heading": "Cabinet Grotesk, sans-serif",
+      "body": "Satoshi, sans-serif",
+      "mono": "JetBrains Mono, monospace"
+    },
+    "hierarchy": {
+      "hero": "text-5xl sm:text-6xl md:text-[6vw] font-black tracking-tighter leading-none",
+      "h1": "text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-tight",
+      "h2": "text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight",
+      "h3": "text-xl sm:text-2xl font-semibold",
+      "h4": "text-lg font-medium",
+      "body": "text-base leading-relaxed",
+      "small": "text-sm text-secondary",
+      "overline": "text-xs font-bold uppercase tracking-[0.2em]"
+    }
+  },
+  "spacing": {
+    "container_padding": "px-6 md:px-12 lg:px-24",
+    "section_gap": "py-24 md:py-32 lg:py-48",
+    "bento_gap": "gap-8 md:gap-12",
+    "card_padding": "p-8 md:p-10"
+  },
+  "layout": {
+    "style": "Asymmetric bento grids, left-aligned typography, generous negative space.",
+    "border_radius": "rounded-none or max rounded-sm",
+    "borders": "1px solid border-black/10 on cards, pure sharp edges.",
+    "shadows": "None. Rely on 1px borders and high contrast background shifts."
+  },
+  "motion": {
+    "library": "gsap",
+    "principles": [
+      "Cinematic and intentional, never decorative.",
+      "Scroll choreography: use ScrollTrigger for pinned sections and parallax.",
+      "Staggered reveals: Lists and bento items fade and slide up sequentially.",
+      "Text Scramble: Use on data loading states (like CTC numbers) for a 'computation' feel.",
+      "Marquee: Slow organic drift for top recruiters ribbon."
+    ]
+  },
+  "components": {
+    "button": "Sharp rectangles, high contrast. Primary: bg-black text-white hover:bg-signature_accent. No border radius.",
+    "card": "bg-white border border-black/10 p-8. Hover effect: slight translate-y-1 and border-black/30.",
+    "input": "Shadcn based but highly customized. Sharp rectangle with border-black/20 focus:border-black focus:ring-0.",
+    "table": "Editorial style. No vertical borders. Generous row padding. Mono font for numbers/IDs.",
+    "chart": "Recharts. Monochrome lines with signature_accent (#FF3B00) for the main data point. Minimal grid lines.",
+    "sidebar": "Left-aligned, strict grid, uppercase overline category headers, highly legible."
+  },
+  "pages": {
+    "landing": {
+      "hero": "Pinned GSAP section. Left-aligned massive 'Cabinet Grotesk' text. Scramble text effect on 'Placement Intelligence'.",
+      "marquee": "Slow editorial ribbon of top recruiters (Amazon, Google, ServiceNow, Intuit) in JetBrains Mono.",
+      "feature_reveal": "Pinned left column with changing text, right column scrolls through feature images (dashboard screenshots).",
+      "stats_strip": "Parallax section showing KMIT stats: 148 Companies, 702 Offers, 8.26 LPA Avg, 80L Top."
+    },
+    "auth": {
+      "layout": "50/50 split. Left side: immersive image of modern university architecture. Right side: minimal form with Google OAuth button."
+    },
+    "dashboard_shell": {
+      "layout": "Command-center. Fixed left sidebar. Main content area with top nav (breadcrumbs + profile).",
+      "sidebar": "Clean, black text on off-white. Active state uses signature_accent left border."
+    },
+    "tpo_dashboard": {
+      "kpi_cards": "Bento layout. North star metric top-left (e.g., 'Total Offers'). Use mono font for numbers.",
+      "charts": "CTC Trends (Line Chart), Offers by Dept (Bar Chart). Clean, no-frills tooltips."
+    },
+    "student_roster": {
+      "features": "Filter/Sort bar. Table with Student ID, Name, Dept, Status (Placed/Unplaced). 'data-testid' on all rows."
+    },
+    "program_cohort": {
+      "layout": "Bento boxes for CRT, Interview Master, FDP. Progress rings for completion rates."
+    },
+    "placement_outcomes": {
+      "layout": "Heavy data page. Heatmap for recruiter vs department. Company logos grid."
+    },
+    "training_completion": {
+      "layout": "List view. Student rows with linear progress bars indicating training module completion."
+    },
+    "mou_management": {
+      "upload_zone": "Massive drag-and-drop dashed rectangle. Countdown timer for 'Days until renewal' in large mono font."
+    },
+    "super_admin": {
+      "layout": "Dense table view for approving colleges. Override data actions."
+    }
+  },
+  "media": {
+    "images": [
+      {
+        "url": "https://images.unsplash.com/photo-1709497197725-2e97c76b31d0?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMjd8MHwxfHNlYXJjaHwzfHxtb2Rlcm4lMjBjb3Jwb3JhdGUlMjB1bml2ZXJzaXR5JTIwYnVpbGRpbmd8ZW58MHx8fHwxNzgxNzk2ODQwfDA&ixlib=rb-4.1.0&q=85",
+        "description": "Modern corporate university building with curved glass facade",
+        "category": "auth_background"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1487958449943-2429e8be8625?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMjd8MHwxfHNlYXJjaHwyfHxtb2Rlcm4lMjBjb3Jwb3JhdGUlMjB1bml2ZXJzaXR5JTIwYnVpbGRpbmd8ZW58MHx8fHwxNzgxNzk2ODQwfDA&ixlib=rb-4.1.0&q=85",
+        "description": "White concrete building architecture",
+        "category": "landing_parallax_bg"
+      },
+      {
+        "url": "https://images.pexels.com/photos/7683694/pexels-photo-7683694.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+        "description": "Diverse group of college students chatting outside a modern university building",
+        "category": "college_profile_header"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1758270704534-fd9715bffc0e?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMjV8MHwxfHNlYXJjaHw0fHxwcm9mZXNzaW9uYWwlMjBkaXZlcnNlJTIwc3R1ZGVudHMlMjB0ZWNoJTIwY2FtcHVzfGVufDB8fHx8MTc4MTc5Njg0MHww&ixlib=rb-4.1.0&q=85",
+        "description": "Students looking at phones in a lecture hall",
+        "category": "roster_empty_state"
+      }
+    ],
+    "logos": [
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg",
+        "description": "Amazon Logo",
+        "category": "top_recruiter_marquee"
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg",
+        "description": "Google Logo",
+        "category": "top_recruiter_marquee"
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/f/f9/Salesforce.com_logo.svg",
+        "description": "Salesforce Logo",
+        "category": "top_recruiter_marquee"
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/2/21/ServiceNow_logo.svg",
+        "description": "ServiceNow Logo",
+        "category": "top_recruiter_marquee"
+      }
+    ]
+  },
+  "tech_stack": {
+    "frontend": "React, Tailwind CSS, GSAP, Radix UI (Shadcn)",
+    "icons": "lucide-react (primary), @phosphor-icons/react (for editorial/duotone details)",
+    "charts": "Recharts"
+  },
+  "instructions_to_main_agent": [
+    "Strictly follow the color palette. DO NOT USE ANY BLUE OR TEAL OR PURPLE.",
+    "Implement the Layout using CSS Grid and Flexbox with heavy padding (e.g., p-8 or p-12 on cards).",
+    "Typography: Import Cabinet Grotesk for Headings and Satoshi for Body. Use JetBrains Mono for numbers/metrics. NEVER USE INTER.",
+    "All interactive elements MUST have data-testid attributes.",
+    "For the dashboard, use the side-nav layout. Ensure active states are clearly visible with the signature_accent color (#FF3B00).",
+    "Seed the app with the specific KMIT data provided: 2025-26: 148 companies, 702 offers, 8.26 LPA avg, top 80L Amazon; 2024-25 Google 52L, Amazon 46L, ServiceNow 42L; 2023-24 Intuit 49.8L, Salesforce 47L.",
+    "Integrate GSAP for the landing page: pinned scroll sections, text reveals, and a marquee for the recruiters.",
+    "Implement the 7 top features specified plus the Super Admin view and Google OAuth integration."
+  ]
+}

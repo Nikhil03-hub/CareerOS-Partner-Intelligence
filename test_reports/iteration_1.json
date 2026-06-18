@@ -1,0 +1,48 @@
+{
+  "summary": "Full backend + frontend testing for CareerOS Campus Intelligence. 22/22 backend pytest tests pass (auth, students, cohorts, placements, training, MOU, admin approval, notification fan-out, cross-college denial). Frontend landing page, dashboard pages, super-admin panel all render correctly and integrate with the backend. One critical SPA bug: demo login on /login navigates the router to /app/overview without refreshing the AuthProvider's user state, so Protected immediately redirects back to /login. Workaround verified: a hard reload of /app/overview loads the dashboard correctly (cookie is set, /auth/me returns 200).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "CORS", "issue": "FastAPI is configured with allow_origins=['*'] AND allow_credentials=True. Browsers reject this combination for cross-origin requests; not currently failing because frontend & backend share an origin in this preview, but will break any future cross-origin call. Pin allow_origins to the deployed frontend URL."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Login.jsx (demo handleDemo)", "issue": "After /api/auth/dev-login succeeds, the code calls navigate('/app/overview') but never refreshes the AuthProvider context. AuthProvider's useEffect([]) already ran once and cached user=null, so <Protected> redirects right back to /login. Verified that a hard reload of /app/overview after dev-login renders the full dashboard correctly (cookie present, /auth/me returns 200). Fix: call the refresh() exposed by useAuth() (or setUser(data.user)) before navigate(...).", "selector": "[data-testid='demo-login-btn']", "priority": "CRITICAL"},
+      {"component": "Landing.jsx", "issue": "The review_request mentions data-testid='section-manifesto', section-decade, section-features, section-recruiters, section-cta but none of those exist in code. The sections do render (recruiter rows, feature cards, year cards all visible) but the section-level testids are missing — would help future automation.", "selector": "section ids", "priority": "LOW"}
+    ],
+    "integration_issues": [
+      {"flow": "Demo login → dashboard", "issue": "End-to-end SPA login broken because of the AuthProvider staleness bug above. The Google OAuth path uses AuthCallback which presumably calls setUser, but the demo path skips this step.", "affected_selectors": ["[data-testid='demo-login-btn']"]}
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_careeros_backend.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "URGENT — Fix Login.jsx handleDemo to refresh AuthProvider before navigating. Simplest patch: import useAuth, call await refresh() (or setUser(data.user)) right after dev-login succeeds, THEN navigate. Same fix for any future signup-then-redirect flows.",
+    "Tighten CORS: replace allow_origins=['*'] with the deployed frontend origin (REACT_APP_BACKEND_URL is fine since same-origin in preview, but production cross-origin call with credentials will fail).",
+    "Optional: add data-testid='section-manifesto'/'section-decade'/'section-features'/'section-recruiters'/'section-cta' to Landing.jsx for future testing.",
+    "Optional: backend POST /api/students should validate required fields (name, department) — currently inserts whatever dict you send. Pydantic model would harden this."
+  ],
+  "critical_code_review_comments": [
+    "server.py: allow_origins=['*'] + allow_credentials=True is a CORS misconfiguration.",
+    "server.py POST /api/students accepts a raw `dict` and writes it directly into MongoDB — no Pydantic validation, could be abused to inject bad fields.",
+    "server.py @app.on_event('startup') uses the deprecated FastAPI event API; lifespan handlers preferred. Not a test failure but should be modernized.",
+    "Login.jsx: handleDemo navigates without refreshing AuthProvider — the root cause of the broken demo flow (see frontend_issues above).",
+    "MOU /api/mou/upload writes file metadata only (size & name) but discards file bytes — no document storage. Acceptable for demo, flag for production.",
+    "DashboardLayout sidebar is `hidden lg:flex` with no mobile burger menu; navigation will be unreachable on tablet/mobile.",
+    "seed_data.py uses random.seed(42) but student/enrollment IDs are uuid4 — non-deterministic, so the same seed run twice would produce different IDs (only matters if startup re-seeds an empty DB)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_careeros_backend.py (created)"
+  ],
+  "success_rate": {"backend": "100% (22/22)", "frontend": "~85% — all pages render and integrate; demo-login→dashboard transition broken due to the AuthProvider bug"},
+  "test_credentials": "Used pre-seeded /app/memory/test_credentials.md accounts: tpo@kmit.in, admin@careeros.app, tpo@vasavi.ac.in via /api/auth/dev-login.",
+  "seed_data_creation": "No new seed data created. Backend test test_students_create inserts a single TEST_-prefixed student; not cleaned up (count assertion is delta-based so safe). test_mou_upload mutated the MOU document name from Skill-Tank-KMIT-MOU-2024.pdf to test_mou.pdf — main agent may want to reseed/restore for demo polish.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend is fully green (22/22). The single critical issue is in /app/frontend/src/pages/Login.jsx — after fix, simply re-run the Playwright demo-login flow and confirm /app/overview loads without a manual reload. Also note that running the backend pytest mutates the MOU document_name (test_mou_upload uploads test_mou.pdf, overwriting the seeded 'Skill-Tank-KMIT-MOU-2024.pdf'); if you need the demo filename restored, drop the careeros_campus.mous collection and restart backend or PATCH the MOU back.",
+  "rca of the issue": "Login.jsx → handleDemo: const { data } = await api.post('/auth/dev-login', ...) — sets the session_token cookie server-side, but the client-side React state (AuthCtx.user) is never updated. AuthProvider's useEffect runs once on initial mount (deps=[]) and cached user=null because /auth/me ran before the cookie existed. The subsequent navigate('/app/overview') re-renders <Protected> which reads the still-null user from context and Navigates to /login. Reproduction: open /login → select tpo@kmit.in → click 'Enter as selected role' → observe URL bounces /login → /app/overview → /login. Mitigation: pull refresh from useAuth() and await it before navigate, or call setUser(data.user) directly with the returned user payload."
+}

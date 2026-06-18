@@ -1,0 +1,49 @@
+{
+  "summary": "CareerOS v2.1 full backend + frontend testing for 6 new feature groups (PDF reports, CSV exports, interview scheduling with .ics + auto Application→Interview stage advance, multi-user invites, GridFS MOU round-trip, faculty-scoped DSA) plus mobile drawer polish. Backend: 22/22 pytest PASS (all critical assertions including binary PDF magic bytes, CSV header validation, GridFS byte-equality round-trip, interview→student-scope visibility, duplicate invite 409, cross-institution invite block, notification fan-out to email+telegram channels). Frontend: All 6 new pages render correctly with proper data-testids — /tpo/reports (6 cards, real PDF download triggered), /tpo/schedule (form opens, headings match), /tpo/team (6 existing rows + invite form), /tpo/mou (gridfs Download button visible), faculty /dsa (FACULTY SCOPE · CSE pill + 'Department DSA pulse.' heading, NOT institutional), student /schedule (no schedule-new button — RBAC enforced). Mobile drawer (414×900): opens, body-scroll locked (overflow:hidden), closes on X / overlay click / route change.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST /api/invite (cross-institution)", "issue": "Cross-institution invites by TPO are correctly silently scoped to TPO's own institution (institution_id field ignored as required), but no test cleanup of these stray users. Surfaced as 2 'Cross Test' rows visible on /tpo/team after backend run. Add teardown OR explicitly block (return 403) instead of silent override for clearer audit."},
+      {"endpoint": "GET /api/interviews/schedule (student)", "issue": "Student/Schedule shows 'Vamsi Kotha · 24KMI05008 · CSE' as the candidate name for the student@kmit.in login (whose User.name is 'Aarav Reddy'). Root cause: seed_data User-to-Student linking has mismatched display names — User.user_id maps to a Student doc with a different Indian-name. Pre-existing seed inconsistency, not a v2.1 regression."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "RoleLayout drawer-close button", "issue": "Two elements share data-testid='drawer-close' (a hidden desktop one + the mobile-drawer one). data-testids must be unique. Either rename one or render only one at a time.", "selector": "[data-testid='drawer-close']", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "/tpo/mou — Documents, countdowns, revenue", "issues": ["Right-side 'Document on file' card has very low contrast/ghost text — filename 'test_mou.pdf', size label, footer line ('Quarterly · Next: 28 Feb 2026') are barely visible against the white background. The 'Download original' button is fine but everything else in that card looks faded. Tighten color (gray-300 → gray-600+)."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_careeros_v21.py",
+    "/app/backend/tests/test_careeros_v2.py",
+    "/app/test_reports/pytest/pytest_v21_results.xml"
+  ],
+  "action_items": [
+    "Resolve duplicate data-testid='drawer-close' in RoleLayout.jsx — make mobile and desktop close buttons distinct (e.g. drawer-close-mobile, drawer-close-desktop), or render only the visible one.",
+    "Fix low-contrast text in MOU 'Document on file' card on /tpo/mou (filename + size + renewal cadence appear ghosted).",
+    "Optional: align User.name with linked Student.name in seed_data.py so student@kmit.in (Aarav Reddy) displays consistently across /student/schedule, /me/dashboard, and TPO views.",
+    "Optional: explicit 403 (or silent re-scope log entry) when TPO passes a foreign institution_id to POST /api/invite, instead of silent overwrite, for audit clarity.",
+    "Optional: add test-data teardown in test_careeros_v21.py to delete the two 'Cross Test' invitees after the cross-institution test, so /tpo/team stays clean for demos."
+  ],
+  "critical_code_review_comments": [
+    "server.py is now 1094 lines — past the recommended 700-line ceiling. Split routers into /routers/reports.py, /routers/interviews.py, /routers/invites.py, /routers/mou.py for maintainability.",
+    "Notification fan-out is awaited inline inside POST /api/interviews/schedule and POST /api/invite — SendGrid timeouts (sender not yet verified → 403) will slow each request by the SDK round-trip. Consider BackgroundTasks for the notify() call.",
+    "GET /api/mou/download reads the entire GridFS blob into memory before yielding (gen() yields a single bytes object). For large MOUs use the AsyncIOMotorGridFSBucket stream directly (yield chunks).",
+    "POST /api/interviews/schedule has no past-date validation — starts_at='2020-01-01' would be accepted. Add `if start_dt < now(): raise 400`.",
+    "DELETE /api/interviews/schedule/{id} does not check institution ownership — any TPO globally could cancel any interview if they know the id (assuming role check passes). Add `institution_id == user.institution_id` guard.",
+    "InviteBody.role Literal allows 'tpo', 'institution_admin', 'faculty', 'coordinator' but a TPO can invite another TPO/institution_admin into their institution — that's likely the intent, but ensure RBAC review confirms TPO escalation isn't a security concern."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_careeros_v21.py (created — 22 tests for v2.1 features)"
+  ],
+  "success_rate": {"backend": "100% (22/22 v2.1 + previous 29/32 v2 baseline)", "frontend": "~98% — every v2.1 page renders, every testid resolves, every download triggers, mobile drawer all 3 close paths work"},
+  "test_credentials": "Standard demo set; password 'careeros2026'. SendGrid sender unverified — email channel logs status='failed' as expected; telegram 'simulated'.",
+  "seed_data_creation": "Backend tests created (and cleaned up) 1 'Dr. Test Invite' invited faculty user. Backend tests left behind 2 'Cross Test' invitee users in inst_kmit from the cross-institution test (no teardown for those — they appear in /tpo/team). Backend tests scheduled 1 interview for the demo student (status='cancelled' after test_cancel_interview ran), uploaded 1 test MOU PDF (~336 bytes × 4 = ~1.3KB) — current /tpo/mou now reflects this test PDF (test_mou.pdf, expires 2027-12-31). Drop careeros_campus DB to fully reset.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "v2.1 regression at /app/backend/tests/test_careeros_v21.py — extend, don't rewrite. The base v2 suite is at test_careeros_v2.py. Demo student stu_891ad8774808 maps to a 'Vamsi Kotha' student doc (not Aarav Reddy as User.name suggests) — interview scoping tests must use student_s.get('/auth/me').student_id, NOT students[0]['student_id'], otherwise the student-scope assertion fails (random seed students lack user accounts). MOU file on record now points to test_mou.pdf via GridFS — re-upload a real MOU before customer demos. Mobile drawer: 2 separate elements carry data-testid='drawer-close' (one hidden desktop, one mobile) — disambiguate in selectors.",
+  "rca of the issue": "No critical failures observed. The two minor concerns (duplicate drawer-close testid, MOU card low-contrast text) are cosmetic. The seed-data User↔Student name mismatch for student@kmit.in is a pre-existing v2 issue exposed by v2.1's new student-name surfacing in the interview UI — fixable in seed_data.py by ensuring the User-creation step for student@kmit.in patches the linked Student.name to 'Aarav Reddy' (or vice versa)."
+}
