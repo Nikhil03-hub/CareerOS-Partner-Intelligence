@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { getStatusBadge, formatDate } from '@/lib/utils'
 import { InviteUserButton } from './InviteUserButton'
 import { ToggleStatusButton } from './ToggleStatusButton'
@@ -15,7 +15,7 @@ const ROLE_LABELS: Record<string, string> = {
 }
 
 export default async function UsersPage() {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   const { data: users } = await supabase.from('users')
     .select('id, name, email, phone, role, status, created_at, colleges(name, code)')

@@ -1,12 +1,13 @@
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { getStatusBadge, formatDate, formatDaysUntil, cn } from '@/lib/utils'
 import Link from 'next/link'
 import { AlertTriangle } from 'lucide-react'
+import { RenewMOUButton } from './RenewMOUButton'
 
 export const dynamic = 'force-dynamic'
 
 export default async function AdminMOUsPage({ searchParams }: { searchParams: { status?: string } }) {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const statusFilter = searchParams.status || 'all'
 
   let query = supabase.from('mous')
@@ -29,24 +30,21 @@ export default async function AdminMOUsPage({ searchParams }: { searchParams: { 
         </div>
       </div>
 
-      {/* Alert banner */}
       {expiring > 0 && (
         <div className="rounded-xl border border-yellow-300 bg-yellow-50 px-5 py-4 flex items-center gap-3">
           <AlertTriangle className="h-5 w-5 text-yellow-600 shrink-0" />
           <p className="text-sm font-medium text-yellow-800">
-            {expiring} MOU{expiring > 1 ? 's' : ''} expiring within 30 days — action required
+            {expiring} MOU{expiring > 1 ? 's' : ''} expiring within 30 days — renew immediately
           </p>
         </div>
       )}
 
-      {/* Summary */}
       <div className="grid grid-cols-3 gap-4">
         <div className="stat-card"><p className="stat-label">Active</p><p className="stat-value text-green-600">{active}</p></div>
         <div className="stat-card"><p className="stat-label">Expiring Soon</p><p className="stat-value text-yellow-600">{expiring}</p></div>
         <div className="stat-card"><p className="stat-label">Expired</p><p className="stat-value text-red-500">{expired}</p></div>
       </div>
 
-      {/* Filter */}
       <div className="flex gap-3">
         {['all', 'active', 'expiring', 'expired'].map(s => (
           <Link key={s} href={`/admin/mous?status=${s}`}
@@ -58,7 +56,6 @@ export default async function AdminMOUsPage({ searchParams }: { searchParams: { 
         ))}
       </div>
 
-      {/* Table */}
       <div className="rounded-xl border bg-card overflow-auto">
         <table className="data-table">
           <thead>
@@ -68,19 +65,21 @@ export default async function AdminMOUsPage({ searchParams }: { searchParams: { 
               <th>Expiry</th>
               <th>Time Left</th>
               <th>Seats</th>
-              <th>Revenue Share</th>
+              <th>Rev Share</th>
               <th>Accrued</th>
               <th>Status</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
             {mous?.map(m => {
               const daysLeft = Math.ceil((new Date(m.expiry_date).getTime() - Date.now()) / 86400000)
+              const college = (m.colleges as any)
               return (
                 <tr key={m.id} className="hover:bg-muted/30">
                   <td>
-                    <Link href={`/admin/colleges/${(m.colleges as any)?.id}`} className="font-semibold text-primary hover:underline text-sm">
-                      {(m.colleges as any)?.code}
+                    <Link href={`/admin/colleges/${college?.id}`} className="font-semibold text-primary hover:underline text-sm">
+                      {college?.code}
                     </Link>
                   </td>
                   <td className="text-sm max-w-[200px] truncate">{m.title}</td>
@@ -94,6 +93,13 @@ export default async function AdminMOUsPage({ searchParams }: { searchParams: { 
                   <td className="text-sm">{m.revenue_share_pct}%</td>
                   <td className="text-sm font-semibold text-green-600">₹{((m.accrued_share_inr || 0) / 100000).toFixed(2)}L</td>
                   <td><span className={getStatusBadge(m.status)}>{m.status}</span></td>
+                  <td>
+                    <RenewMOUButton
+                      mouId={m.id}
+                      collegeName={college?.name || college?.code || ''}
+                      currentExpiry={m.expiry_date}
+                    />
+                  </td>
                 </tr>
               )
             })}

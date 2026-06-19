@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { formatCurrency, formatDate, getStatusBadge, calcHealthLabel, calcHealthColor } from '@/lib/utils'
 import { Building2, Users, TrendingUp, DollarSign, AlertTriangle, FileText } from 'lucide-react'
 import { StatsCard } from '@/components/shared/StatsCard'
@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
 export default async function AdminDashboard() {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   // Fetch aggregates in parallel
   const [

@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { getStatusBadge, formatDate, calcHealthColor } from '@/lib/utils'
 import { cn } from '@/lib/utils'
@@ -7,7 +7,7 @@ import { ApproveCollegeButton } from './ApproveCollegeButton'
 export const dynamic = 'force-dynamic'
 
 export default async function CollegesPage({ searchParams }: { searchParams: { status?: string; q?: string } }) {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const status = searchParams.status || 'all'
   const q = searchParams.q || ''
 
@@ -86,7 +86,7 @@ export default async function CollegesPage({ searchParams }: { searchParams: { s
                 <td>
                   <div className="flex items-center gap-2">
                     <Link href={`/admin/colleges/${c.id}`} className="text-xs text-primary hover:underline">View</Link>
-                    {c.status === 'pending' && <ApproveCollegeButton collegeId={c.id} collegeName={c.name} />}
+                    <ApproveCollegeButton collegeId={c.id} collegeName={c.name} currentStatus={c.status} />
                   </div>
                 </td>
               </tr>

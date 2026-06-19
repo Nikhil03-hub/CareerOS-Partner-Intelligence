@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { getStatusBadge, formatDate } from '@/lib/utils'
 import Link from 'next/link'
 import { ApprovePayoutButton } from './ApprovePayoutButton'
@@ -6,7 +6,7 @@ import { ApprovePayoutButton } from './ApprovePayoutButton'
 export const dynamic = 'force-dynamic'
 
 export default async function AdminRevenuePage() {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   const [revShare, payouts, summary] = await Promise.all([
     supabase.from('revenue_share')

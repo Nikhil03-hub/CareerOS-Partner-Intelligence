@@ -1,14 +1,15 @@
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { formatDate, formatDaysUntil, getStatusBadge, calcHealthColor, calcHealthLabel, formatCurrency } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { ArrowLeft, Building2, Users, TrendingUp, DollarSign, FileText, Award } from 'lucide-react'
+import { HealthScoreBreakdown } from './HealthScoreBreakdown'
 
 export const dynamic = 'force-dynamic'
 
 export default async function CollegeDetailPage({ params }: { params: { id: string } }) {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { id } = params
 
   const [college, students, mou, cohorts, revShare, fdp, placements, events] = await Promise.all([
@@ -69,6 +70,9 @@ export default async function CollegeDetailPage({ params }: { params: { id: stri
           <p className={cn('stat-value', highRisk > 0 ? 'text-red-500' : '')}>{highRisk}</p>
         </div>
       </div>
+
+      {/* AI Health Score Breakdown — full width */}
+      <HealthScoreBreakdown collegeId={id} initialScore={c.health_score} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* MOU */}

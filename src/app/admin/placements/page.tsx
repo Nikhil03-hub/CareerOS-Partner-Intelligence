@@ -1,11 +1,11 @@
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { YearSelector } from '@/components/shared/YearSelector'
 
 export const dynamic = 'force-dynamic'
 
 export default async function AdminPlacementsPage({ searchParams }: { searchParams: { year?: string } }) {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const selectedYear = searchParams.year || '2025-26'
 
   const [records, allYears, topCompanies] = await Promise.all([
@@ -14,7 +14,7 @@ export default async function AdminPlacementsPage({ searchParams }: { searchPara
     supabase.from('placement_records').select('company, selects, ctc_lpa').eq('academic_year', selectedYear).order('ctc_lpa', { ascending: false }).limit(15),
   ])
 
-  const YEARS = [...new Set(allYears.data?.map(y => y.academic_year))]
+  const YEARS = [...new Set(allYears.data?.map((y: any) => y.academic_year as string) ?? [])] as string[]
   const totalOffers = records.data?.reduce((a, r) => a + (r.offers || 0), 0) || 0
   const avgPackage = records.data?.length ? records.data.reduce((a, r) => a + (r.avg_lpa || 0), 0) / records.data.length : 0
   const topPackage = Math.max(...(records.data?.map(r => r.top_offer_lpa || 0) || [0]))

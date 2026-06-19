@@ -24,5 +24,6 @@ export function ToggleStatusButton({ userId, currentStatus }: { userId: string; 
       className={`text-xs px-2.5 py-1 rounded font-medium transition-colors disabled:opacity-50 ${isActive ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-green-100 text-green-700 hover:bg-green-200'}`}>
       {loading ? '…' : isActive ? 'Suspend' : 'Activate'}
     </button>
+  
   )
 }

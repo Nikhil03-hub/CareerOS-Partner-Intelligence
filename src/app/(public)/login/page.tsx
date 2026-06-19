@@ -115,4 +115,5 @@ function getDashboardPath(role?: string) {
     case 'account_manager': return '/admin/colleges'
     default: return '/college/dashboard'
   }
+
 }

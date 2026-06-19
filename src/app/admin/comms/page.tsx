@@ -1,24 +1,31 @@
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { formatRelative } from '@/lib/utils'
-import { MessageSquare, Phone, Video, StickyNote } from 'lucide-react'
+import { StickyNote, Phone, Video } from 'lucide-react'
+import { LogCommButton } from './LogCommButton'
 
 export const dynamic = 'force-dynamic'
 
 const TYPE_ICONS = { note: StickyNote, meeting: Video, call: Phone }
 
 export default async function AdminCommsPage() {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
-  const { data: logs } = await supabase.from('communication_logs')
-    .select('id, type, subject, body, created_by_name, created_at, next_meeting_at, colleges(name, code)')
-    .order('created_at', { ascending: false })
-    .limit(60)
+  const [{ data: logs }, { data: colleges }] = await Promise.all([
+    supabase.from('communication_logs')
+      .select('id, type, subject, body, created_by_name, created_at, next_meeting_at, colleges(name, code)')
+      .order('created_at', { ascending: false })
+      .limit(60),
+    supabase.from('colleges').select('id, name, code').eq('status', 'active').order('code'),
+  ])
 
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <h1>Communications Log</h1>
-        <p className="text-muted-foreground text-sm mt-1">All communications across partner colleges</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1>Communications Log</h1>
+          <p className="text-muted-foreground text-sm mt-1">All communications across partner colleges</p>
+        </div>
+        <LogCommButton colleges={colleges || []} />
       </div>
       <div className="rounded-xl border bg-card divide-y">
         {logs?.map(l => {
@@ -35,13 +42,20 @@ export default async function AdminCommsPage() {
                   <span className="text-xs text-muted-foreground shrink-0">{formatRelative(l.created_at)}</span>
                 </div>
                 <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{l.body}</p>
-                <p className="text-xs text-muted-foreground mt-1">By {l.created_by_name}</p>
+                <div className="flex items-center gap-3 mt-1">
+                  <p className="text-xs text-muted-foreground">By {l.created_by_name}</p>
+                  {l.next_meeting_at && (
+                    <p className="text-xs text-blue-600 font-medium">
+                      Next: {new Date(l.next_meeting_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           )
         })}
         {(logs?.length || 0) === 0 && (
-          <p className="px-5 py-8 text-center text-sm text-muted-foreground">No communication logs</p>
+          <p className="px-5 py-8 text-center text-sm text-muted-foreground">No communication logs. Use "Log Communication" to add one.</p>
         )}
       </div>
     </div>

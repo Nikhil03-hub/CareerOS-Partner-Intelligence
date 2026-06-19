@@ -174,4 +174,5 @@ function InputField({ label, value, onChange, placeholder, type = 'text', requir
       />
     </div>
   )
+
 }

@@ -1,12 +1,13 @@
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { cn, formatLPA, getStatusBadge } from '@/lib/utils'
+import { AnalyticsCharts } from './AnalyticsCharts'
 
 export const dynamic = 'force-dynamic'
 
 const MEDAL = ['🥇', '🥈', '🥉']
 
 export default async function AdminAnalyticsPage() {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   // Get all colleges with aggregate stats
   const { data: colleges } = await supabase
@@ -70,6 +71,42 @@ export default async function AdminAnalyticsPage() {
   // Sort by health score descending
   leaderboard.sort((a, b) => b.healthScore - a.healthScore)
 
+  // ── Chart data ─────────────────────────────────────────────────────────────
+  // 1. Placement trend: aggregate offers + avg LPA per academic year
+  const { data: allYearSummaries } = await supabase
+    .from('year_summaries')
+    .select('academic_year, offers, avg_lpa')
+    .order('academic_year', { ascending: true })
+
+  const yearMap: Record<string, { offers: number; lpaSum: number; count: number }> = {}
+  for (const y of allYearSummaries || []) {
+    if (!yearMap[y.academic_year]) yearMap[y.academic_year] = { offers: 0, lpaSum: 0, count: 0 }
+    yearMap[y.academic_year].offers += y.offers || 0
+    yearMap[y.academic_year].lpaSum += y.avg_lpa || 0
+    yearMap[y.academic_year].count++
+  }
+  const placementTrend = Object.entries(yearMap).map(([year, d]) => ({
+    year,
+    offers: d.offers,
+    avgLpa: d.count > 0 ? Math.round((d.lpaSum / d.count) * 10) / 10 : 0,
+  }))
+
+  // 2. Health score distribution buckets
+  const healthDistribution = [
+    { range: '0–24', color: '#ef4444', count: leaderboard.filter(c => c.healthScore < 25).length },
+    { range: '25–49', color: '#f97316', count: leaderboard.filter(c => c.healthScore >= 25 && c.healthScore < 50).length },
+    { range: '50–69', color: '#eab308', count: leaderboard.filter(c => c.healthScore >= 50 && c.healthScore < 70).length },
+    { range: '70–84', color: '#22c55e', count: leaderboard.filter(c => c.healthScore >= 70 && c.healthScore < 85).length },
+    { range: '85–100', color: '#2563eb', count: leaderboard.filter(c => c.healthScore >= 85).length },
+  ]
+
+  // 3. Top 8 colleges by revenue (in lakhs)
+  const revenueByCollege = leaderboard
+    .filter(c => c.revenue > 0)
+    .sort((a, b) => b.revenue - a.revenue)
+    .slice(0, 8)
+    .map(c => ({ code: c.code, revenue: Math.round(c.revenue / 100000 * 10) / 10 }))
+
   // Summary stats
   const avgHealth = leaderboard.length > 0
     ? Math.round(leaderboard.reduce((a, c) => a + c.healthScore, 0) / leaderboard.length)
@@ -102,6 +139,13 @@ export default async function AdminAnalyticsPage() {
           </div>
         ))}
       </div>
+
+      {/* Charts */}
+      <AnalyticsCharts
+        placementTrend={placementTrend}
+        healthDistribution={healthDistribution}
+        revenueByCollege={revenueByCollege}
+      />
 
       {/* Leaderboard */}
       <div className="rounded-xl border bg-card overflow-auto">
@@ -160,17 +204,9 @@ export default async function AdminAnalyticsPage() {
                   <td className="text-sm font-medium text-green-600">
                     {c.avgLpa > 0 ? `₹${c.avgLpa.toFixed(1)}L` : '—'}
                   </td>
-                  <td>
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-10 h-1.5 rounded-full bg-muted overflow-hidden">
-                        <div className="h-full rounded-full bg-blue-500" style={{ width: `${c.completionRate}%` }} />
-                      </div>
-                      <span className="text-xs font-medium">{c.completionRate}%</span>
-                    </div>
-                  </td>
-                  <td className="text-sm text-muted-foreground">{c.students.toLocaleString()}</td>
-                  <td className="text-sm font-medium">
-                    {c.revenue > 0 ? `₹${(c.revenue / 100000).toFixed(1)}L` : '—'}
+                  <td className="text-sm">{c.completionRate > 0 ? `${c.completionRate}%` : '—'}</td>
+                  <td className="text-sm font-semibold text-green-600">
+                    {c.revenue > 0 ? `₹${(c.revenue / 100000).toFixed(2)}L` : '—'}
                   </td>
                 </tr>
               )
@@ -186,9 +222,9 @@ export default async function AdminAnalyticsPage() {
       {/* Performance Distribution */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { label: '🟢 High Performers', desc: 'Health ≥ 70', count: leaderboard.filter(c => c.healthScore >= 70).length, color: 'border-green-200 bg-green-50 dark:bg-green-950/20' },
-          { label: '🟡 Average Performers', desc: 'Health 45–69', count: leaderboard.filter(c => c.healthScore >= 45 && c.healthScore < 70).length, color: 'border-yellow-200 bg-yellow-50 dark:bg-yellow-950/20' },
-          { label: '🔴 Needs Attention', desc: 'Health < 45', count: leaderboard.filter(c => c.healthScore < 45).length, color: 'border-red-200 bg-red-50 dark:bg-red-950/20' },
+          { label: '🟢 High Performers', desc: 'Health ≥ 70', count: leaderboard.filter(c => c.healthScore >= 70).length, color: 'border-green-200 bg-green-50' },
+          { label: '🟡 Average Performers', desc: 'Health 45–69', count: leaderboard.filter(c => c.healthScore >= 45 && c.healthScore < 70).length, color: 'border-yellow-200 bg-yellow-50' },
+          { label: '🔴 Needs Attention', desc: 'Health < 45', count: leaderboard.filter(c => c.healthScore < 45).length, color: 'border-red-200 bg-red-50' },
         ].map(band => (
           <div key={band.label} className={cn('rounded-xl border p-4', band.color)}>
             <p className="text-sm font-semibold">{band.label}</p>

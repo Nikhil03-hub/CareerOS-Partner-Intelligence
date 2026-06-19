@@ -1,10 +1,10 @@
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { getStatusBadge, formatDate } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
 
 export default async function AdminTrainingPage() {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   const [cohorts, { count: totalEnrolled }, { count: completed }] = await Promise.all([
     supabase.from('cohorts')
