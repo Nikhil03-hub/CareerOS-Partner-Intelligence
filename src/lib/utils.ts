@@ -72,5 +72,5 @@ export function calcHealthColor(score: number): string {
 export function calcHealthLabel(score: number): string {
   if (score >= 75) return 'Healthy'
   if (score >= 50) return 'Needs Attention'
-  return 'At Risk'
+  return 'Critical'
 }

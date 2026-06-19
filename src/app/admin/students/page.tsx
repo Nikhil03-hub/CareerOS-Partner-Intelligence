@@ -1,11 +1,13 @@
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { getStatusBadge, cn } from '@/lib/utils'
 import Link from 'next/link'
+import { AddStudentButton } from './AddStudentButton'
+import { PlacementPredictorModal } from './PlacementPredictorModal'
 
 export const dynamic = 'force-dynamic'
 
 export default async function AdminStudentsPage({ searchParams }: { searchParams: { risk?: string; q?: string } }) {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const riskFilter = searchParams.risk || 'all'
   const q = searchParams.q || ''
 
@@ -17,7 +19,10 @@ export default async function AdminStudentsPage({ searchParams }: { searchParams
   if (riskFilter !== 'all') query = query.eq('risk_level', riskFilter)
   if (q) query = query.ilike('name', `%${q}%`)
 
-  const { data: students, count } = await query
+  const [{ data: students }, { data: colleges }] = await Promise.all([
+    query,
+    supabase.from('colleges').select('id, name, code').eq('status', 'active').order('code'),
+  ])
 
   const highRisk = students?.filter(s => s.risk_level === 'high').length || 0
 
@@ -28,6 +33,7 @@ export default async function AdminStudentsPage({ searchParams }: { searchParams
           <h1>All Students</h1>
           <p className="text-muted-foreground text-sm mt-1">{students?.length || 0} students · {highRisk} high-risk</p>
         </div>
+        <AddStudentButton colleges={colleges || []} />
       </div>
 
       <div className="flex items-center gap-3">
@@ -52,13 +58,14 @@ export default async function AdminStudentsPage({ searchParams }: { searchParams
               <th>ATS</th>
               <th>Placement</th>
               <th>Risk</th>
+              <th>AI</th>
             </tr>
           </thead>
           <tbody>
             {students?.map(s => (
               <tr key={s.id} className="hover:bg-muted/30">
                 <td>
-                  <p className="font-medium text-sm">{s.name}</p>
+                  <a href={`/admin/students/${s.id}`} className="font-medium text-sm hover:text-primary hover:underline transition-colors">{s.name}</a>
                   <p className="text-xs text-muted-foreground">{s.email}</p>
                 </td>
                 <td className="text-sm font-semibold text-primary">{(s.colleges as any)?.code}</td>
@@ -74,6 +81,7 @@ export default async function AdminStudentsPage({ searchParams }: { searchParams
                 <td className={cn('text-sm font-semibold', (s.ats_score || 0) >= 70 ? 'text-green-600' : 'text-yellow-600')}>{s.ats_score || '—'}</td>
                 <td><span className={getStatusBadge(s.placement_status)}>{s.placement_status?.replace('_', ' ')}</span></td>
                 <td><span className={getStatusBadge(s.risk_level)}>{s.risk_level}</span></td>
+                <td><PlacementPredictorModal studentId={s.id} studentName={s.name} /></td>
               </tr>
             ))}
           </tbody>

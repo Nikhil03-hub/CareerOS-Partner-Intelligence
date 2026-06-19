@@ -22,7 +22,10 @@
     "tailwind-merge": "^2.3.0",
     "sonner": "^1.5.0",
     "uuid": "^9.0.1",
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.8.2",
+    "recharts": "^2.12.7"
   },
   "devDependencies": {
     "typescript": "^5.4.5",

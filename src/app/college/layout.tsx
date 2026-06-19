@@ -4,11 +4,12 @@ import Link from 'next/link'
 import { UserMenu } from '@/components/shared/UserMenu'
 import {
   LayoutDashboard, Users, TrendingUp, BookOpen,
-  FileText, DollarSign, Bell, BarChart3, Award, MessageSquare, LineChart
+  FileText, DollarSign, Bell, BarChart3, Award, MessageSquare, LineChart, Bot
 } from 'lucide-react'
 
 const COLLEGE_NAV = [
   { label: 'Dashboard', href: '/college/dashboard', icon: LayoutDashboard, roles: ['tpo', 'hod', 'faculty_coord', 'club_coord'] },
+  { label: 'AI Copilot', href: '/college/copilot', icon: Bot, roles: ['tpo', 'hod'] },
   { label: 'Students', href: '/college/students', icon: Users, roles: ['tpo', 'hod', 'faculty_coord', 'club_coord'] },
   { label: 'Placements', href: '/college/placements', icon: TrendingUp, roles: ['tpo', 'hod', 'club_coord'] },
   { label: 'Training', href: '/college/training', icon: BookOpen, roles: ['tpo', 'hod', 'faculty_coord'] },
@@ -65,7 +66,7 @@ export default async function CollegeLayout({ children }: { children: React.Reac
         </div>
       </aside>
 
-      <main className="flex-1 overflow-y-auto">
+            <main className="flex-1 overflow-y-auto">
         {children}
       </main>
     </div>

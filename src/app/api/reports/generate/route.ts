@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 
 export async function POST(req: NextRequest) {
   try {
@@ -8,57 +8,104 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing parameters' }, { status: 400 })
     }
 
-    const supabase = await createClient()
+    const supabase = createServiceClient()
 
-    // Fetch data for report
-    const [college, placements, students, mou, cohorts, revShare] = await Promise.all([
-      supabase.from('colleges').select('name, code, city, type').eq('id', collegeId).single(),
-      supabase.from('year_summaries').select('*').eq('college_id', collegeId).order('academic_year', { ascending: false }),
-      supabase.from('students').select('placement_status, risk_level, readiness_score').eq('college_id', collegeId),
-      supabase.from('mous').select('*').eq('college_id', collegeId).order('created_at', { ascending: false }).limit(1).single(),
-      supabase.from('cohorts').select('name, enrolled_count, completion_pct').eq('college_id', collegeId).limit(5),
-      supabase.from('revenue_share').select('period, share_amount, payout_status').eq('college_id', collegeId).order('period', { ascending: false }).limit(4),
+    const [college, placements, students, mou, cohorts, revShare, fdp, comms] = await Promise.all([
+      supabase.from('colleges').select('name, code, city, state, type, health_score, seats_purchased, seats_used').eq('id', collegeId).single(),
+      supabase.from('year_summaries').select('*').eq('college_id', collegeId).order('academic_year', { ascending: false }).limit(6),
+      supabase.from('students').select('placement_status, risk_level, readiness_score, cgpa').eq('college_id', collegeId),
+      supabase.from('mous').select('title, status, expiry_date, revenue_share_pct, seats_purchased').eq('college_id', collegeId).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+      supabase.from('cohorts').select('name, enrolled_count, completion_pct, status').eq('college_id', collegeId).order('created_at', { ascending: false }).limit(8),
+      supabase.from('revenue_share').select('period, gross_amount, share_amount, payout_status').eq('college_id', collegeId).order('period', { ascending: false }).limit(6),
+      supabase.from('fdp_sessions').select('title, date, status, registered_count').eq('college_id', collegeId).order('date', { ascending: false }).limit(5),
+      supabase.from('communication_logs').select('type, subject, created_at').eq('college_id', collegeId).order('created_at', { ascending: false }).limit(5),
     ])
 
-    // Build summary payload
     const stuList = students.data || []
     const cohortList = cohorts.data || []
     const revList = revShare.data || []
 
     const placed = stuList.filter(s => s.placement_status === 'placed').length
+    const highRisk = stuList.filter(s => s.risk_level === 'high').length
     const placementRate = stuList.length ? Math.round((placed / stuList.length) * 100) : 0
-    const totalRevShare = revList.reduce((a, r) => a + (r.share_amount || 0), 0)
-    const avgCompletion = cohortList.length
-      ? cohortList.reduce((a, c) => a + (c.completion_pct || 0), 0) / cohortList.length
+    const avgReadiness = stuList.length
+      ? Math.round(stuList.reduce((a, s) => a + (s.readiness_score || 0), 0) / stuList.length)
       : 0
-    const latestYear = placements.data?.[0]
+    const avgCgpa = stuList.length
+      ? (stuList.reduce((a, s) => a + (Number(s.cgpa) || 0), 0) / stuList.length).toFixed(2)
+      : '0'
+    const totalRevShare = revList.reduce((a, r) => a + (r.share_amount || 0), 0)
+    const activeCohorts = cohortList.filter(c => c.status !== 'upcoming')
+    const avgCompletion = activeCohorts.length > 0
+      ? Math.round(activeCohorts.reduce((a, c) => a + (c.completion_pct || 0), 0) / activeCohorts.length)
+      : 0
 
-    const summary = {
-      college: college.data?.name,
-      reportType, generatedAt: new Date().toISOString(),
-      placement: { rate: placementRate, students: stuList.length, placed, latestYear },
-      training: { cohorts: cohortList.length, avgCompletion },
-      revenue: { total: totalRevShare, mouExpiry: mou.data?.expiry_date },
+    const metrics = {
+      students: {
+        total: stuList.length,
+        placed,
+        placementRate,
+        avgReadiness,
+        highRisk,
+        avgCgpa,
+      },
+      training: {
+        cohorts: cohortList.length,
+        avgCompletion,
+      },
+      revenue: {
+        total: totalRevShare,
+        periods: revList.length,
+      },
     }
 
-    // Update report record with summary (PDF generation would happen here with @react-pdf/renderer)
+    // AI executive summary (rule-based)
+    const collegeName = college.data?.name || 'the college'
+    const aiSummary = [
+      `CareerOS Partner Intelligence — ${reportType.toUpperCase()} REPORT`,
+      `${collegeName} | Generated: ${new Date().toLocaleDateString('en-IN')}`,
+      '',
+      `EXECUTIVE OVERVIEW`,
+      `${collegeName} currently has ${stuList.length} enrolled students with a placement rate of ${placementRate}%. ` +
+      `Average student readiness score stands at ${avgReadiness}%, with ${highRisk} students classified as high placement risk. ` +
+      `Training completion across ${activeCohorts.length} active cohorts averages ${avgCompletion}%. ` +
+      `Total revenue share accrued: ₹${(totalRevShare / 100000).toFixed(2)}L.`,
+      '',
+      placementRate >= 80
+        ? `STRENGTH: Excellent placement rate (${placementRate}%) exceeds the 80% benchmark.`
+        : placementRate >= 60
+          ? `IMPROVEMENT NEEDED: Placement rate (${placementRate}%) is below the 80% target.`
+          : `CRITICAL: Placement rate (${placementRate}%) requires immediate intervention.`,
+      highRisk > 20
+        ? `RISK ALERT: ${highRisk} high-risk students require counselling intervention.`
+        : `RISK STATUS: Student risk distribution is within acceptable range.`,
+      avgCompletion < 60
+        ? `TRAINING GAP: Average cohort completion (${avgCompletion}%) needs improvement.`
+        : `TRAINING: Cohort completion rates are on track.`,
+    ].join('\n')
+
+    // Update report record
     await supabase.from('reports').update({
       status: 'ready',
-      ai_summary: JSON.stringify(summary),
-      file_url: null, // In production: upload generated PDF to Supabase Storage
+      ai_summary: aiSummary,
     }).eq('id', reportId)
 
-    // Log activity event
-    await supabase.from('activity_events').insert({
-      college_id: collegeId, entity_type: 'report', entity_id: reportId,
-      event_type: 'report.generated',
-      title: `${reportType.charAt(0).toUpperCase() + reportType.slice(1)} report generated`,
-      payload: { reportType },
+    return NextResponse.json({
+      success: true,
+      data: {
+        college: college.data,
+        yearSummaries: placements.data,
+        metrics,
+        cohorts: cohortList,
+        revShare: revList,
+        fdp: fdp.data,
+        comms: comms.data,
+        mou: mou.data,
+        aiSummary,
+        reportType,
+      },
     })
-
-    return NextResponse.json({ success: true, summary })
   } catch (err: any) {
-    console.error('[report/generate]', err)
     return NextResponse.json({ error: err.message }, { status: 500 })
   }
 }

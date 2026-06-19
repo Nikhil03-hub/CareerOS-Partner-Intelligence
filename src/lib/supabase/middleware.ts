@@ -26,7 +26,6 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
-  // Public routes that don't require auth
   const PUBLIC_PATHS = ['/login', '/signup', '/forgot-password', '/auth/callback']
   const isPublic = PUBLIC_PATHS.some(p => pathname.startsWith(p)) || pathname === '/'
 
@@ -37,7 +36,6 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (user && (pathname === '/login' || pathname === '/signup')) {
-    // Redirect to appropriate dashboard
     const role = user.user_metadata?.role as string | undefined
     const url = request.nextUrl.clone()
     url.pathname = getDashboardPath(role)
@@ -54,7 +52,7 @@ function getDashboardPath(role?: string): string {
     case 'tpo': return '/college/dashboard'
     case 'hod': return '/college/students'
     case 'faculty_coord': return '/college/training'
-    case 'club_coord': return '/college/placements'
+    case 'club_coord': return '/college/fdp'
     default: return '/college/dashboard'
   }
 }
