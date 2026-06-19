@@ -36,7 +36,7 @@ CREATE TYPE event_type AS ENUM (
 -- 4.1 IDENTITY & TENANCY
 -- ============================================================
 CREATE TABLE colleges (
-  id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name            TEXT NOT NULL,
   code            TEXT UNIQUE,
   university      TEXT,
@@ -58,7 +58,7 @@ CREATE TABLE colleges (
 );
 
 CREATE TABLE departments (
-  id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   college_id  UUID NOT NULL REFERENCES colleges(id) ON DELETE CASCADE,
   name        TEXT NOT NULL,
   code        TEXT,
@@ -67,7 +67,7 @@ CREATE TABLE departments (
 );
 
 CREATE TABLE users (
-  id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   auth_id         UUID UNIQUE,              -- references auth.users(id)
   college_id      UUID REFERENCES colleges(id) ON DELETE SET NULL,
   role            user_role NOT NULL DEFAULT 'tpo',
@@ -89,7 +89,7 @@ ALTER TABLE colleges ADD CONSTRAINT colleges_account_manager_fk
 -- 4.2 STUDENTS, PROGRAMS, COHORTS
 -- ============================================================
 CREATE TABLE students (
-  id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   college_id       UUID NOT NULL REFERENCES colleges(id) ON DELETE CASCADE,
   department_id    UUID REFERENCES departments(id) ON DELETE SET NULL,
   name             TEXT NOT NULL,
@@ -114,7 +114,7 @@ CREATE TABLE students (
 );
 
 CREATE TABLE programs (
-  id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   code         TEXT UNIQUE NOT NULL,
   name         TEXT NOT NULL,
   type         TEXT,        -- CRT|Interview Master|FDP|DSA|Aptitude|etc.
@@ -126,7 +126,7 @@ CREATE TABLE programs (
 );
 
 CREATE TABLE cohorts (
-  id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   program_id   UUID NOT NULL REFERENCES programs(id),
   college_id   UUID NOT NULL REFERENCES colleges(id) ON DELETE CASCADE,
   name         TEXT NOT NULL,
@@ -141,7 +141,7 @@ CREATE TABLE cohorts (
 );
 
 CREATE TABLE enrollments (
-  id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   student_id   UUID NOT NULL REFERENCES students(id) ON DELETE CASCADE,
   cohort_id    UUID REFERENCES cohorts(id) ON DELETE SET NULL,
   program_id   UUID NOT NULL REFERENCES programs(id),
@@ -161,7 +161,7 @@ CREATE TABLE enrollments (
 -- 4.3 TRAINING & ASSESSMENT
 -- ============================================================
 CREATE TABLE training_progress (
-  id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   enrollment_id   UUID REFERENCES enrollments(id) ON DELETE CASCADE,
   student_id      UUID NOT NULL REFERENCES students(id) ON DELETE CASCADE,
   college_id      UUID NOT NULL REFERENCES colleges(id) ON DELETE CASCADE,
@@ -171,7 +171,7 @@ CREATE TABLE training_progress (
 );
 
 CREATE TABLE assessments (
-  id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   student_id   UUID NOT NULL REFERENCES students(id) ON DELETE CASCADE,
   cohort_id    UUID REFERENCES cohorts(id) ON DELETE SET NULL,
   college_id   UUID NOT NULL REFERENCES colleges(id) ON DELETE CASCADE,
@@ -183,7 +183,7 @@ CREATE TABLE assessments (
 );
 
 CREATE TABLE certificates (
-  id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   student_id   UUID NOT NULL REFERENCES students(id) ON DELETE CASCADE,
   program_id   UUID NOT NULL REFERENCES programs(id),
   college_id   UUID NOT NULL REFERENCES colleges(id) ON DELETE CASCADE,
@@ -196,7 +196,7 @@ CREATE TABLE certificates (
 -- 4.4 PLACEMENTS
 -- ============================================================
 CREATE TABLE companies (
-  id         UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name       TEXT UNIQUE NOT NULL,
   logo_url   TEXT,
   logo_color TEXT,
@@ -208,7 +208,7 @@ CREATE TABLE companies (
 );
 
 CREATE TABLE placements (
-  id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   student_id      UUID NOT NULL REFERENCES students(id) ON DELETE CASCADE,
   college_id      UUID NOT NULL REFERENCES colleges(id) ON DELETE CASCADE,
   department_id   UUID REFERENCES departments(id) ON DELETE SET NULL,
@@ -226,7 +226,7 @@ CREATE TABLE placements (
 
 -- KMIT real placement data table (aggregated records per year/company)
 CREATE TABLE placement_records (
-  id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   college_id      UUID NOT NULL REFERENCES colleges(id) ON DELETE CASCADE,
   academic_year   TEXT NOT NULL,
   company         TEXT NOT NULL,
@@ -237,7 +237,7 @@ CREATE TABLE placement_records (
 );
 
 CREATE TABLE year_summaries (
-  id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   college_id      UUID NOT NULL REFERENCES colleges(id) ON DELETE CASCADE,
   academic_year   TEXT NOT NULL,
   companies       INT DEFAULT 0,
@@ -252,7 +252,7 @@ CREATE TABLE year_summaries (
 -- 4.5 MOU / PARTNERSHIP
 -- ============================================================
 CREATE TABLE mous (
-  id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   college_id       UUID NOT NULL REFERENCES colleges(id) ON DELETE CASCADE,
   title            TEXT NOT NULL,
   partnership_type TEXT,
@@ -275,7 +275,7 @@ CREATE TABLE mous (
 );
 
 CREATE TABLE mou_renewals (
-  id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   mou_id        UUID NOT NULL REFERENCES mous(id) ON DELETE CASCADE,
   old_expiry    DATE,
   new_expiry    DATE,
@@ -288,7 +288,7 @@ CREATE TABLE mou_renewals (
 -- 4.6 FDP (Faculty Development Programme)
 -- ============================================================
 CREATE TABLE faculty (
-  id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   college_id    UUID NOT NULL REFERENCES colleges(id) ON DELETE CASCADE,
   department_id UUID REFERENCES departments(id) ON DELETE SET NULL,
   name          TEXT NOT NULL,
@@ -298,7 +298,7 @@ CREATE TABLE faculty (
 );
 
 CREATE TABLE fdp_sessions (
-  id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   college_id    UUID NOT NULL REFERENCES colleges(id) ON DELETE CASCADE,
   title         TEXT NOT NULL,
   speaker       TEXT,
@@ -317,7 +317,7 @@ CREATE TABLE fdp_sessions (
 );
 
 CREATE TABLE fdp_attendance (
-  id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   fdp_session_id  UUID NOT NULL REFERENCES fdp_sessions(id) ON DELETE CASCADE,
   faculty_id      UUID NOT NULL REFERENCES faculty(id) ON DELETE CASCADE,
   college_id      UUID NOT NULL REFERENCES colleges(id) ON DELETE CASCADE,
@@ -331,7 +331,7 @@ CREATE TABLE fdp_attendance (
 -- 4.7 REVENUE SHARE
 -- ============================================================
 CREATE TABLE revenue_share (
-  id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   college_id       UUID NOT NULL REFERENCES colleges(id) ON DELETE CASCADE,
   period           TEXT NOT NULL,  -- '2026-Q1' format
   gross_amount     NUMERIC(12,2) DEFAULT 0,
@@ -345,7 +345,7 @@ CREATE TABLE revenue_share (
 );
 
 CREATE TABLE payouts (
-  id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   college_id    UUID NOT NULL REFERENCES colleges(id) ON DELETE CASCADE,
   amount        NUMERIC(12,2) NOT NULL,
   period        TEXT,
@@ -357,7 +357,7 @@ CREATE TABLE payouts (
 );
 
 CREATE TABLE seat_allocations (
-  id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   college_id      UUID NOT NULL REFERENCES colleges(id) ON DELETE CASCADE,
   program_id      UUID NOT NULL REFERENCES programs(id),
   seats_purchased INT DEFAULT 0,
@@ -371,7 +371,7 @@ CREATE TABLE seat_allocations (
 -- 4.8 COMMUNICATION & NOTIFICATIONS
 -- ============================================================
 CREATE TABLE communication_logs (
-  id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   college_id          UUID NOT NULL REFERENCES colleges(id) ON DELETE CASCADE,
   account_manager_id  UUID REFERENCES users(id) ON DELETE SET NULL,
   type                comm_type NOT NULL DEFAULT 'note',
@@ -384,7 +384,7 @@ CREATE TABLE communication_logs (
 );
 
 CREATE TABLE activity_events (
-  id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   college_id    UUID REFERENCES colleges(id) ON DELETE CASCADE,  -- nullable for platform events
   entity_type   TEXT NOT NULL,   -- 'student'|'placement'|'fdp'|'mou'|'college'|'report'|'enrollment'|'revenue'
   entity_id     UUID,
@@ -396,7 +396,7 @@ CREATE TABLE activity_events (
 );
 
 CREATE TABLE notifications (
-  id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   recipient_user_id   UUID,                        -- stores auth.uid() — no FK, used by RLS
   college_id          UUID REFERENCES colleges(id) ON DELETE CASCADE,
   type                TEXT NOT NULL,
@@ -410,7 +410,7 @@ CREATE TABLE notifications (
 );
 
 CREATE TABLE notification_logs (
-  id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   notification_id     UUID REFERENCES notifications(id) ON DELETE CASCADE,
   channel             TEXT NOT NULL,  -- email|telegram|in_app
   provider_response   JSONB DEFAULT '{}',
@@ -419,14 +419,14 @@ CREATE TABLE notification_logs (
 );
 
 CREATE TABLE chat_rooms (
-  id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   college_id          UUID NOT NULL REFERENCES colleges(id) ON DELETE CASCADE,
   account_manager_id  UUID REFERENCES users(id) ON DELETE SET NULL,
   created_at          TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE TABLE messages (
-  id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   chat_room_id    UUID NOT NULL REFERENCES chat_rooms(id) ON DELETE CASCADE,
   sender_user_id  UUID REFERENCES users(id) ON DELETE SET NULL,
   body            TEXT NOT NULL,
@@ -439,7 +439,7 @@ CREATE TABLE messages (
 -- 4.9 REPORTS, AI, GOVERNANCE
 -- ============================================================
 CREATE TABLE reports (
-  id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   college_id      UUID NOT NULL REFERENCES colleges(id) ON DELETE CASCADE,
   type            TEXT NOT NULL,                         -- placement|training|revenue|executive|fdp|mou|quarterly|annual
   title           TEXT NOT NULL DEFAULT 'Report',
@@ -452,7 +452,7 @@ CREATE TABLE reports (
 );
 
 CREATE TABLE ai_insights (
-  id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   scope_type      TEXT NOT NULL,  -- college|student|mou|department
   scope_id        UUID NOT NULL,
   college_id      UUID REFERENCES colleges(id) ON DELETE CASCADE,
@@ -465,7 +465,7 @@ CREATE TABLE ai_insights (
 );
 
 CREATE TABLE college_health_history (
-  id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   college_id      UUID NOT NULL REFERENCES colleges(id) ON DELETE CASCADE,
   score           INT NOT NULL,
   breakdown       JSONB DEFAULT '{}',  -- {placement:40, training:25, fdp:20, engagement:15}
@@ -473,7 +473,7 @@ CREATE TABLE college_health_history (
 );
 
 CREATE TABLE audit_logs (
-  id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   actor_user_id   UUID REFERENCES users(id) ON DELETE SET NULL,
   action          TEXT NOT NULL,
   entity_type     TEXT,
@@ -485,7 +485,7 @@ CREATE TABLE audit_logs (
 );
 
 CREATE TABLE workshop_requests (
-  id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   college_id      UUID NOT NULL REFERENCES colleges(id) ON DELETE CASCADE,
   requested_by    UUID REFERENCES users(id) ON DELETE SET NULL,
   kind            TEXT DEFAULT 'workshop',  -- workshop|hackathon
@@ -497,7 +497,7 @@ CREATE TABLE workshop_requests (
 );
 
 CREATE TABLE benchmark_snapshots (
-  id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   period          TEXT NOT NULL,
   metric          TEXT NOT NULL,
   avg_value       NUMERIC(10,2),
@@ -507,7 +507,7 @@ CREATE TABLE benchmark_snapshots (
 
 -- DSA progress (from teammate's Striver A2Z model)
 CREATE TABLE dsa_progress (
-  id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   student_id      UUID NOT NULL REFERENCES students(id) ON DELETE CASCADE,
   college_id      UUID NOT NULL REFERENCES colleges(id) ON DELETE CASCADE,
   topic_code      TEXT NOT NULL,
@@ -520,7 +520,7 @@ CREATE TABLE dsa_progress (
 );
 
 CREATE TABLE aptitude_scores (
-  id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   student_id      UUID NOT NULL REFERENCES students(id) ON DELETE CASCADE,
   college_id      UUID NOT NULL REFERENCES colleges(id) ON DELETE CASCADE,
   section_code    TEXT NOT NULL,
@@ -534,7 +534,7 @@ CREATE TABLE aptitude_scores (
 );
 
 CREATE TABLE ats_reports (
-  id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   student_id        UUID NOT NULL REFERENCES students(id) ON DELETE CASCADE,
   college_id        UUID NOT NULL REFERENCES colleges(id) ON DELETE CASCADE,
   score             INT DEFAULT 0,
@@ -547,7 +547,7 @@ CREATE TABLE ats_reports (
 );
 
 CREATE TABLE interview_reports (
-  id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   student_id        UUID NOT NULL REFERENCES students(id) ON DELETE CASCADE,
   college_id        UUID NOT NULL REFERENCES colleges(id) ON DELETE CASCADE,
   type              TEXT DEFAULT 'Technical',  -- Technical|HR|System Design|Behavioral
