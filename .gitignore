@@ -5,6 +5,16 @@ backend/venv/
 backend/.env
 frontend/.env.local
 
+# TypeScript compiled output (seed scripts)
+.ts-out/
+
+# Supabase local dev
+supabase/.branches
+supabase/.temp
+
+# Vercel
+.vercel
+
 # Build
 build/
 dist/
