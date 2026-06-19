@@ -11,7 +11,6 @@ const PARTNERSHIP_TYPES = ['CRT (Campus Recruitment Training)', 'FDP (Faculty De
 
 export default function SignupPage() {
   const router = useRouter()
-  const supabase = createClient()
   const [step, setStep] = useState<1 | 2>(1)
   const [loading, setLoading] = useState(false)
 
@@ -37,6 +36,7 @@ export default function SignupPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
+    const supabase = createClient()
 
     try {
       // 1. Create auth user

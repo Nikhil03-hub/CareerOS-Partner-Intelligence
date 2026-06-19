@@ -22,16 +22,22 @@ export async function POST(req: NextRequest) {
 
     // Build summary payload
     const stuList = students.data || []
+    const cohortList = cohorts.data || []
+    const revList = revShare.data || []
+
     const placed = stuList.filter(s => s.placement_status === 'placed').length
     const placementRate = stuList.length ? Math.round((placed / stuList.length) * 100) : 0
-    const totalRevShare = revShare.data?.reduce((a, r) => a + (r.share_amount || 0), 0) || 0
+    const totalRevShare = revList.reduce((a, r) => a + (r.share_amount || 0), 0)
+    const avgCompletion = cohortList.length
+      ? cohortList.reduce((a, c) => a + (c.completion_pct || 0), 0) / cohortList.length
+      : 0
     const latestYear = placements.data?.[0]
 
     const summary = {
       college: college.data?.name,
       reportType, generatedAt: new Date().toISOString(),
       placement: { rate: placementRate, students: stuList.length, placed, latestYear },
-      training: { cohorts: cohorts.data?.length, avgCompletion: cohorts.data?.reduce((a, c) => a + (c.completion_pct || 0), 0) / (cohorts.data?.length || 1) },
+      training: { cohorts: cohortList.length, avgCompletion },
       revenue: { total: totalRevShare, mouExpiry: mou.data?.expiry_date },
     }
 
