@@ -14,7 +14,7 @@ export default async function AdminFDPPage() {
       .order('date', { ascending: false })
       .limit(60),
     supabase.from('fdp_sessions').select('status'),
-    supabase.from('colleges').select('id, name, code').eq('status', 'active').order('code'),
+    supabase.from('colleges').select('id, name, code').order('code'),
   ])
 
   const completed = stats?.filter(s => s.status === 'completed').length || 0

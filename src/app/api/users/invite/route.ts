@@ -3,7 +3,6 @@ import { createClient, createServiceClient } from '@/lib/supabase/server'
 
 export async function POST(req: NextRequest) {
   try {
-    // Verify caller is super_admin or account_manager
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -17,16 +16,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    // Use service client for admin invite
     const admin = createServiceClient()
-    const { data, error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {
-      data: { name, role: inviteRole, college_id: college_id || null },
-    })
-    if (inviteError) throw inviteError
+    const tempPassword = 'careeros2026'
 
-    // Create user profile record
+    const { data, error: createError } = await admin.auth.admin.createUser({
+      email,
+      password: tempPassword,
+      email_confirm: true,
+      user_metadata: { name, role: inviteRole, college_id: college_id || null },
+    })
+
+    if (createError) {
+      const msg = createError.message?.toLowerCase() || ''
+      if (msg.includes('already registered') || msg.includes('already exists')) {
+        return NextResponse.json({ error: 'A user with that email already exists.' }, { status: 409 })
+      }
+      throw createError
+    }
+
     if (data?.user) {
-      await admin.from('users').insert({
+      const { error: insertError } = await admin.from('users').insert({
         auth_id: data.user.id,
         name,
         email,
@@ -34,9 +43,13 @@ export async function POST(req: NextRequest) {
         college_id: college_id || null,
         status: 'active',
       })
+      if (insertError) {
+        await admin.auth.admin.deleteUser(data.user.id)
+        throw new Error('Profile creation failed: ' + insertError.message)
+      }
     }
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, tempPassword })
   } catch (err: any) {
     console.error('[invite-user]', err)
     return NextResponse.json({ error: err.message }, { status: 500 })

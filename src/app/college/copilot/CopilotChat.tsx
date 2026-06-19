@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 interface Ctx {
   college: string
@@ -45,6 +45,12 @@ export default function CopilotChat({ context: ctx }: { context: Ctx }) {
     },
   ])
   const [input, setInput] = useState('')
+  const bottomRef = useRef<HTMLDivElement>(null)
+
+  // Auto-scroll to bottom on new messages
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
 
   function ask(question: string) {
     if (!question.trim()) return
@@ -102,6 +108,7 @@ export default function CopilotChat({ context: ctx }: { context: Ctx }) {
             </div>
           </div>
         ))}
+        <div ref={bottomRef} />
       </div>
 
       {/* Input */}

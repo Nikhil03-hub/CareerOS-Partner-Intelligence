@@ -31,7 +31,7 @@ export default async function CopilotPage() {
   // Students
   const { data: students } = await svc
     .from('students')
-    .select('id, name, cgpa, placement_readiness, risk_level, placement_status, batch_year')
+    .select('id, name, cgpa, readiness_score, risk_level, placement_status, batch_year')
     .eq('college_id', collegeId)
 
   // Enrollments
@@ -94,7 +94,7 @@ export default async function CopilotPage() {
   const medRisk = allStudents.filter(s => s.risk_level === 'medium')
   const placed = allStudents.filter(s => s.placement_status === 'placed')
   const avgReadiness = totalStudents > 0
-    ? Math.round(allStudents.reduce((a, s) => a + (s.placement_readiness || 0), 0) / totalStudents)
+    ? Math.round(allStudents.reduce((a, s) => a + (s.readiness_score || 0), 0) / totalStudents)
     : 0
   const avgCGPA = totalStudents > 0
     ? (allStudents.reduce((a, s) => a + (s.cgpa || 0), 0) / totalStudents).toFixed(2)
@@ -240,7 +240,7 @@ export default async function CopilotPage() {
                       <div className="flex items-center gap-3">
                         <div className="text-right">
                           <p className="text-xs text-muted-foreground">Readiness</p>
-                          <p className="text-sm font-bold text-red-600">{s.placement_readiness}%</p>
+                          <p className="text-sm font-bold text-red-600">{s.readiness_score}%</p>
                         </div>
                         <span className="text-xs bg-red-100 text-red-700 border border-red-200 px-2 py-0.5 rounded-full font-semibold">
                           High Risk

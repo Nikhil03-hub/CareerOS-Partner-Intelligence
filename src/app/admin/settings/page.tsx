@@ -36,12 +36,12 @@ export default async function SettingsPage() {
           </div>
         </div>
 
-        {/* Demo Data Tools */}
+        {/* Data Management */}
         <div className="rounded-xl border bg-card p-5 space-y-5">
           <div>
-            <h3 className="text-base font-semibold mb-1">Demo Data Tools</h3>
+            <h3 className="text-base font-semibold mb-1">Data Management</h3>
             <p className="text-xs text-muted-foreground">
-              Run these once after seeding to make platform data realistic for judging/demo.
+              Administrative tools for data initialization and AI health computation.
             </p>
           </div>
 
@@ -96,8 +96,8 @@ export default async function SettingsPage() {
               { label: 'Database', value: 'PostgreSQL (Supabase)' },
               { label: 'Auth', value: 'Supabase Auth' },
               { label: 'Storage', value: 'Supabase Storage' },
-              { label: 'Deployment', value: 'Vercel' },
-              { label: 'Edition', value: 'SummerSaaS 2026 Hackathon' },
+              { label: 'AI Engine', value: 'Placement Predictor v2' },
+              { label: 'Plan', value: 'Enterprise' },
             ].map(s => (
               <div key={s.label}>
                 <p className="text-muted-foreground text-xs">{s.label}</p>

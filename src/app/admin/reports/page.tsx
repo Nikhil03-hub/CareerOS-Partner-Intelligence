@@ -50,7 +50,6 @@ export default async function AdminReportsPage() {
       .limit(50),
     supabase.from('colleges')
       .select('id, name, code')
-      .eq('status', 'approved')
       .order('name'),
   ])
 

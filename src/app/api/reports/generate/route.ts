@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     const supabase = createServiceClient()
 
     const [college, placements, students, mou, cohorts, revShare, fdp, comms] = await Promise.all([
-      supabase.from('colleges').select('name, code, city, state, type, health_score, seats_purchased, seats_used').eq('id', collegeId).single(),
+      supabase.from('colleges').select('name, code, city, state, type, health_score').eq('id', collegeId).single(),
       supabase.from('year_summaries').select('*').eq('college_id', collegeId).order('academic_year', { ascending: false }).limit(6),
       supabase.from('students').select('placement_status, risk_level, readiness_score, cgpa').eq('college_id', collegeId),
       supabase.from('mous').select('title, status, expiry_date, revenue_share_pct, seats_purchased').eq('college_id', collegeId).order('created_at', { ascending: false }).limit(1).maybeSingle(),

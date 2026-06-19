@@ -40,11 +40,11 @@ export function GenerateReportButton({ reportType, reportLabel, colleges }: Prop
       const { data, error: genErr } = await genRes.json()
       if (genErr) throw new Error(genErr)
 
-      // 3. Build and download PDF (jspdf loaded dynamically)
+      // 3. Build and download PDF
       const college = colleges.find(c => c.id === collegeId)
-      await downloadPDF(data, college?.name || '', reportLabel)
+      await downloadPDF(data, college?.name || '', reportLabel, reportType)
 
-      toast.success(`${reportLabel} report downloaded!`)
+      toast.success(`${reportLabel} downloaded!`)
       setOpen(false)
     } catch (err: any) {
       toast.error(err.message || 'PDF generation failed')
@@ -67,7 +67,7 @@ export function GenerateReportButton({ reportType, reportLabel, colleges }: Prop
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="bg-card border rounded-xl p-6 w-[380px] shadow-2xl space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-base">Generate {reportLabel} Report</h3>
+              <h3 className="font-semibold text-base">Generate {reportLabel}</h3>
               <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground">
                 <X className="h-4 w-4" />
               </button>
@@ -80,6 +80,7 @@ export function GenerateReportButton({ reportType, reportLabel, colleges }: Prop
                 onChange={e => setCollegeId(e.target.value)}
                 className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               >
+                <option value="">Select a college...</option>
                 {colleges.map(c => (
                   <option key={c.id} value={c.id}>{c.code} — {c.name}</option>
                 ))}
@@ -87,7 +88,7 @@ export function GenerateReportButton({ reportType, reportLabel, colleges }: Prop
             </div>
 
             <p className="text-xs text-muted-foreground">
-              The report will pull live data from the platform and include an AI executive summary.
+              Pulls live data and includes an AI executive summary.
             </p>
 
             <div className="flex gap-3 pt-1">
@@ -99,11 +100,11 @@ export function GenerateReportButton({ reportType, reportLabel, colleges }: Prop
               </button>
               <button
                 onClick={handleGenerate}
-                disabled={loading}
+                disabled={loading || !collegeId}
                 className="flex-[2] rounded-lg bg-primary text-primary-foreground px-4 py-2 text-sm font-medium hover:bg-primary/90 disabled:opacity-60 transition-colors flex items-center justify-center gap-2"
               >
                 {loading ? (
-                  <><Loader2 className="h-4 w-4 animate-spin" /> Generating…</>
+                  <><Loader2 className="h-4 w-4 animate-spin" /> Generating...</>
                 ) : (
                   <><Download className="h-4 w-4" /> Download PDF</>
                 )}
@@ -116,48 +117,60 @@ export function GenerateReportButton({ reportType, reportLabel, colleges }: Prop
   )
 }
 
-async function downloadPDF(data: any, collegeName: string, reportLabel: string) {
-  // Dynamic import to avoid SSR issues
+// Type-specific header colours
+const TYPE_COLORS: Record<string, [number, number, number]> = {
+  placement:  [37, 99, 235],   // blue
+  health:     [99, 102, 241],  // indigo
+  quarterly:  [124, 58, 237],  // violet
+  revenue:    [16, 185, 129],  // emerald
+}
+
+async function downloadPDF(data: any, collegeName: string, reportLabel: string, reportType: string) {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore - jspdf loaded at runtime via npm
-  const { default: jsPDF } = await import('jspdf')
   // @ts-ignore
-  const { default: autoTable } = await import('jspdf-autotable')
+  const { default: jsPDF } = await import('jspdf')
+  await import('jspdf-autotable') // side-effect: registers autoTable on jsPDF.prototype
 
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
   const W = 210, M = 16
+  const [r, g, b] = TYPE_COLORS[reportType] || [37, 99, 235]
 
-  // ── Header ──────────────────────────────────────────
-  doc.setFillColor(37, 99, 235)
-  doc.rect(0, 0, W, 36, 'F')
+  // ── Header ──────────────────────────────────────────────────────────────────
+  doc.setFillColor(r, g, b)
+  doc.rect(0, 0, W, 38, 'F')
 
   doc.setTextColor(255, 255, 255)
   doc.setFontSize(18)
   doc.setFont('helvetica', 'bold')
-  doc.text('CareerOS Partner Intelligence', M, 14)
+  doc.text('CareerOS Partner Intelligence', M, 13)
 
-  doc.setFontSize(11)
+  doc.setFontSize(12)
   doc.setFont('helvetica', 'normal')
-  doc.text(`${reportLabel} Report — ${collegeName}`, M, 22)
+  // reportLabel already contains the full name (e.g. "Placement Report") — no extra "Report"
+  doc.text(`${reportLabel} — ${collegeName}`, M, 22)
 
   doc.setFontSize(8)
-  doc.text(`Generated: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST   |   Track 5B — SummerSaaS Hackathon 2026`, M, 30)
+  doc.text(
+    `Generated: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST   |   CareerOS Partner Intelligence · Confidential`,
+    M, 31
+  )
 
   doc.setTextColor(30, 30, 30)
   let y = 48
 
-  // ── AI Summary ──────────────────────────────────────
+  // ── AI Summary ──────────────────────────────────────────────────────────────
   if (data?.aiSummary) {
     doc.setFillColor(243, 246, 255)
     doc.roundedRect(M, y, W - M * 2, 28, 2, 2, 'F')
     doc.setFontSize(8)
     doc.setFont('helvetica', 'bold')
-    doc.setTextColor(37, 99, 235)
+    doc.setTextColor(r, g, b)
     doc.text('AI EXECUTIVE SUMMARY', M + 4, y + 6)
     doc.setFont('helvetica', 'normal')
     doc.setTextColor(50, 50, 50)
-    const summaryLines = doc.splitTextToSize(data.aiSummary.split('\n').slice(4).join(' ').slice(0, 400), W - M * 2 - 8)
-    doc.text(summaryLines.slice(0, 4), M + 4, y + 12)
+    const summaryText = data.aiSummary.split('\n').slice(4).join(' ').slice(0, 400)
+    const summaryLines = doc.splitTextToSize(summaryText, W - M * 2 - 8)
+    doc.text(summaryLines.slice(0, 4), M + 4, y + 13)
     y += 36
   }
 
@@ -166,7 +179,7 @@ async function downloadPDF(data: any, collegeName: string, reportLabel: string) 
   const training = m.training || {}
   const revenue = m.revenue || {}
 
-  // ── Key Metrics Grid ─────────────────────────────────
+  // ── Key Metrics Grid ────────────────────────────────────────────────────────
   doc.setFontSize(10)
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(30, 30, 30)
@@ -182,8 +195,8 @@ async function downloadPDF(data: any, collegeName: string, reportLabel: string) 
     ['Avg CGPA', String(students.avgCgpa || '—')],
     ['Training Cohorts', String(training.cohorts || 0)],
     ['Avg Completion', `${training.avgCompletion || 0}%`],
-    ['Health Score', `${data?.college?.health_score || '—'}/100`],
-    ['Total Rev Share', `₹${((revenue.total || 0) / 100000).toFixed(2)}L`],
+    ['Health Score', `${data?.college?.health_score ?? '—'}/100`],
+    ['Rev Share (Total)', `Rs.${((revenue.total || 0) / 100000).toFixed(2)}L`],
   ]
 
   const colW = (W - M * 2) / 5
@@ -192,12 +205,11 @@ async function downloadPDF(data: any, collegeName: string, reportLabel: string) 
     const row = Math.floor(i / 5)
     const x = M + col * colW
     const yy = y + row * 18
-
     doc.setFillColor(248, 250, 252)
     doc.roundedRect(x, yy, colW - 2, 16, 1.5, 1.5, 'F')
-    doc.setFontSize(14)
+    doc.setFontSize(13)
     doc.setFont('helvetica', 'bold')
-    doc.setTextColor(37, 99, 235)
+    doc.setTextColor(r, g, b)
     doc.text(val, x + 4, yy + 9)
     doc.setFontSize(7)
     doc.setFont('helvetica', 'normal')
@@ -206,41 +218,71 @@ async function downloadPDF(data: any, collegeName: string, reportLabel: string) 
   })
   y += Math.ceil(metrics.length / 5) * 18 + 8
 
-  // ── Year Summaries Table ──────────────────────────────
-  if (data?.yearSummaries?.length) {
+  // ── Placement History (placement + quarterly reports) ────────────────────────
+  if ((reportType === 'placement' || reportType === 'quarterly') && data?.yearSummaries?.length) {
     doc.setFontSize(10)
     doc.setFont('helvetica', 'bold')
     doc.setTextColor(30, 30, 30)
-    doc.text('PLACEMENT HISTORY', M, y)
+    doc.text('PLACEMENT HISTORY (YEAR-ON-YEAR)', M, y)
     y += 3
 
-    autoTable(doc, {
+    (doc as any).autoTable({
       startY: y,
-      head: [['Academic Year', 'Offers', 'Companies', 'Avg CTC (LPA)', 'Highest CTC']],
+      head: [['Academic Year', 'Offers', 'Companies', 'Avg CTC (LPA)', 'Top Offer', 'Top Company']],
       body: data.yearSummaries.map((yr: any) => [
         yr.academic_year || '',
         String(yr.offers || 0),
         String(yr.companies || 0),
-        `₹${yr.avg_ctc_lpa || 0}L`,
-        `₹${yr.highest_ctc_lpa || 0}L`,
+        `Rs.${yr.avg_lpa || 0}L`,
+        `Rs.${yr.top_offer_lpa || 0}L`,
+        yr.top_company || '—',
       ]),
       styles: { fontSize: 8, cellPadding: 2.5 },
-      headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: 'bold', fontSize: 8 },
+      headStyles: { fillColor: [r, g, b], textColor: 255, fontStyle: 'bold', fontSize: 8 },
       alternateRowStyles: { fillColor: [248, 250, 252] },
       margin: { left: M, right: M },
     })
     y = (doc as any).lastAutoTable.finalY + 10
   }
 
-  // ── Cohorts Table ─────────────────────────────────────
-  if (data?.cohorts?.length) {
+  // ── Health Score Breakdown (health report) ───────────────────────────────────
+  if (reportType === 'health') {
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(30, 30, 30)
+    doc.text('COLLEGE HEALTH SCORE BREAKDOWN', M, y)
+    y += 3
+
+    const hs = data?.college?.health_score || 0
+    const factors = [
+      ['Placement Rate', `${students.placementRate || 0}%`, students.placementRate >= 70 ? 'Strong' : 'Needs Work'],
+      ['Training Completion', `${training.avgCompletion || 0}%`, training.avgCompletion >= 60 ? 'On Track' : 'Lagging'],
+      ['Student Risk', `${students.highRisk || 0} high-risk`, students.highRisk < 20 ? 'Healthy' : 'Alert'],
+      ['Revenue Share', `Rs.${((revenue.total || 0) / 100000).toFixed(2)}L`, revenue.total > 0 ? 'Active' : 'No Data'],
+      ['Overall Score', `${hs}/100`, hs >= 70 ? 'Healthy' : hs >= 50 ? 'Moderate' : 'Critical'],
+    ]
+
+    (doc as any).autoTable({
+      startY: y,
+      head: [['Factor', 'Value', 'Status']],
+      body: factors,
+      styles: { fontSize: 9, cellPadding: 3 },
+      headStyles: { fillColor: [r, g, b], textColor: 255, fontStyle: 'bold', fontSize: 9 },
+      alternateRowStyles: { fillColor: [248, 250, 252] },
+      margin: { left: M, right: M },
+    })
+    y = (doc as any).lastAutoTable.finalY + 10
+  }
+
+  // ── Training Cohorts (placement + quarterly + health) ───────────────────────
+  if (reportType !== 'revenue' && data?.cohorts?.length) {
     doc.setFontSize(10)
     doc.setFont('helvetica', 'bold')
     doc.setTextColor(30, 30, 30)
     doc.text('TRAINING COHORTS', M, y)
     y += 3
 
-    autoTable(doc, {
+    (doc as any).autoTable({
       startY: y,
       head: [['Cohort Name', 'Enrolled', 'Completion %', 'Status']],
       body: data.cohorts.map((c: any) => [
@@ -250,50 +292,101 @@ async function downloadPDF(data: any, collegeName: string, reportLabel: string) 
         (c.status || '').toUpperCase(),
       ]),
       styles: { fontSize: 8, cellPadding: 2.5 },
-      headStyles: { fillColor: [99, 102, 241], textColor: 255, fontStyle: 'bold', fontSize: 8 },
+      headStyles: { fillColor: [r, g, b], textColor: 255, fontStyle: 'bold', fontSize: 8 },
       alternateRowStyles: { fillColor: [248, 250, 252] },
       margin: { left: M, right: M },
     })
     y = (doc as any).lastAutoTable.finalY + 10
   }
 
-  // ── Revenue Table ─────────────────────────────────────
-  if (data?.revShare?.length) {
+  // ── FDP Sessions (quarterly report) ─────────────────────────────────────────
+  if (reportType === 'quarterly' && data?.fdp?.length) {
     doc.setFontSize(10)
     doc.setFont('helvetica', 'bold')
     doc.setTextColor(30, 30, 30)
-    doc.text('REVENUE SHARE', M, y)
+    doc.text('FDP SESSIONS', M, y)
     y += 3
 
-    autoTable(doc, {
+    (doc as any).autoTable({
       startY: y,
-      head: [['Period', 'Gross Amount', 'Share Amount', 'Status']],
-      body: data.revShare.map((r: any) => [
-        r.period || '',
-        `₹${((r.gross_amount || 0) / 100000).toFixed(2)}L`,
-        `₹${((r.share_amount || 0) / 100000).toFixed(2)}L`,
-        (r.payout_status || '').toUpperCase(),
+      head: [['Title', 'Date', 'Status', 'Registered']],
+      body: data.fdp.map((f: any) => [
+        f.title || '',
+        f.date ? new Date(f.date).toLocaleDateString('en-IN') : '—',
+        (f.status || '').toUpperCase(),
+        String(f.registered_count || 0),
       ]),
       styles: { fontSize: 8, cellPadding: 2.5 },
-      headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: 'bold', fontSize: 8 },
+      headStyles: { fillColor: [r, g, b], textColor: 255, fontStyle: 'bold', fontSize: 8 },
+      alternateRowStyles: { fillColor: [248, 250, 252] },
+      margin: { left: M, right: M },
+    })
+    y = (doc as any).lastAutoTable.finalY + 10
+  }
+
+  // ── Revenue Share (revenue + quarterly reports) ─────────────────────────────
+  if ((reportType === 'revenue' || reportType === 'quarterly') && data?.revShare?.length) {
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(30, 30, 30)
+    doc.text('REVENUE SHARE HISTORY', M, y)
+    y += 3
+
+    (doc as any).autoTable({
+      startY: y,
+      head: [['Period', 'Gross Amount', 'Share Amount', 'Status']],
+      body: data.revShare.map((rv: any) => [
+        rv.period || '',
+        `Rs.${((rv.gross_amount || 0) / 100000).toFixed(2)}L`,
+        `Rs.${((rv.share_amount || 0) / 100000).toFixed(2)}L`,
+        (rv.payout_status || '').toUpperCase(),
+      ]),
+      styles: { fontSize: 8, cellPadding: 2.5 },
+      headStyles: { fillColor: [r, g, b], textColor: 255, fontStyle: 'bold', fontSize: 8 },
+      alternateRowStyles: { fillColor: [248, 250, 252] },
+      margin: { left: M, right: M },
+    })
+    y = (doc as any).lastAutoTable.finalY + 10
+  }
+
+  // ── MOU Info (quarterly report) ──────────────────────────────────────────────
+  if ((reportType === 'quarterly' || reportType === 'health') && data?.mou) {
+    const mu = data.mou
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(30, 30, 30)
+    doc.text('MOU / PARTNERSHIP DETAILS', M, y)
+    y += 3
+
+    (doc as any).autoTable({
+      startY: y,
+      head: [['Field', 'Value']],
+      body: [
+        ['MOU Title', mu.title || '—'],
+        ['Status', (mu.status || '—').toUpperCase()],
+        ['Expiry Date', mu.expiry_date ? new Date(mu.expiry_date).toLocaleDateString('en-IN') : '—'],
+        ['Revenue Share %', `${mu.revenue_share_pct || 0}%`],
+        ['Seats', String(mu.seats_purchased || 0)],
+      ],
+      styles: { fontSize: 8, cellPadding: 2.5 },
+      headStyles: { fillColor: [r, g, b], textColor: 255, fontStyle: 'bold', fontSize: 8 },
       alternateRowStyles: { fillColor: [248, 250, 252] },
       margin: { left: M, right: M },
     })
   }
 
-  // ── Footer ────────────────────────────────────────────
+  // ── Footer ────────────────────────────────────────────────────────────────────
   const pageCount = (doc as any).internal.getNumberOfPages()
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i)
     doc.setFontSize(7)
     doc.setTextColor(150, 150, 150)
     doc.text(
-      `CareerOS Partner Intelligence Platform · Confidential · Page ${i} of ${pageCount}`,
+      `CareerOS Partner Intelligence Platform  |  Confidential  |  Page ${i} of ${pageCount}`,
       W / 2, 290, { align: 'center' }
     )
   }
 
-  // Download
-  const filename = `CareerOS_${reportLabel.replace(/\s/g, '_')}_${collegeName.replace(/\s/g, '_')}_${new Date().toISOString().slice(0, 10)}.pdf`
+  const filename = `CareerOS_${reportType}_${collegeName.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.pdf`
   doc.save(filename)
 }

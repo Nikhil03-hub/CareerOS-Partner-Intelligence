@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { UserPlus } from 'lucide-react'
@@ -18,9 +17,9 @@ export function InviteUserButton() {
   const [colleges, setColleges] = useState<{ id: string; name: string; code: string }[]>([])
 
   async function loadColleges() {
-    const supabase = createClient()
-    const { data } = await supabase.from('colleges').select('id, name, code').eq('status', 'approved')
-    setColleges(data || [])
+    const res = await fetch('/api/colleges/list')
+    const json = await res.json()
+    setColleges(json.colleges || [])
   }
 
   function open_() { setOpen(true); loadColleges() }
@@ -40,7 +39,7 @@ export function InviteUserButton() {
       })
       const body = await res.json()
       if (!res.ok) throw new Error(body.error || 'Failed to invite user')
-      toast.success(`Invite sent to ${form.email}`)
+      toast.success(`User created! Temp password: ${body.tempPassword}`, { duration: 8000 })
       setOpen(false)
       router.refresh()
     } catch (err: any) {

@@ -15,7 +15,7 @@ export default async function AdminCommsPage() {
       .select('id, type, subject, body, created_by_name, created_at, next_meeting_at, colleges(name, code)')
       .order('created_at', { ascending: false })
       .limit(60),
-    supabase.from('colleges').select('id, name, code').eq('status', 'active').order('code'),
+    supabase.from('colleges').select('id, name, code').order('code'),
   ])
 
   return (

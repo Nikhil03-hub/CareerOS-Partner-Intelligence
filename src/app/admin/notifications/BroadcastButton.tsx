@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { Send } from 'lucide-react'
@@ -17,36 +16,18 @@ export function BroadcastButton() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
-    const supabase = createClient()
-
     try {
-      // Get target users
-      let userQuery = supabase.from('users').select('auth_id')
-      if (form.targetRole !== 'all') userQuery = userQuery.eq('role', form.targetRole)
-      const { data: users } = await userQuery.limit(500)
-
-      if (!users?.length) throw new Error('No users found for target role')
-
-      // Batch insert notifications
-      const notifs = users.map(u => ({
-        recipient_user_id: u.auth_id,
-        title: form.title, body: form.body, type: form.type,
-        status: 'sent', read: false,
-      }))
-
-      for (let i = 0; i < notifs.length; i += 100) {
-        await supabase.from('notifications').insert(notifs.slice(i, i + 100))
-      }
-
-      // Send to API for Telegram/email dispatch
-      await fetch('/api/notifications/broadcast', {
+      // Single API call — DB insert + Telegram both handled server-side with service client
+      const res = await fetch('/api/notifications/broadcast', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: form.title, body: form.body, type: form.type, targetRole: form.targetRole }),
       })
-
-      toast.success(`Notification sent to ${notifs.length} users`)
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || 'Failed to send')
+      toast.success(`Notification sent to ${json.sent} users`)
       setOpen(false)
+      setForm(f => ({ ...f, title: '', body: '' }))
       router.refresh()
     } catch (err: any) {
       toast.error(err.message || 'Failed to send')
@@ -95,7 +76,6 @@ export function BroadcastButton() {
           </div>
         </div>
       )}
-   
-  </>
-)
+    </>
+  )
 }

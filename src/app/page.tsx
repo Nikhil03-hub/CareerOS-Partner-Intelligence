@@ -28,7 +28,7 @@ export default function LandingPage() {
         <div className="relative max-w-4xl mx-auto">
           <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 rounded-full px-4 py-1.5 text-sm text-blue-300 mb-8">
             <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />
-            SummerSaaS Hackathon 2026 — Track 5B Finalist
+            Trusted by 25+ partner colleges across Telangana & AP
           </div>
           <h1 className="text-5xl md:text-6xl font-black leading-tight mb-6 tracking-tight">
             The Operating System<br />
@@ -69,7 +69,7 @@ export default function LandingPage() {
               { value: '25+', label: 'Partner Colleges', sub: 'Telangana & AP' },
               { value: '2,500+', label: 'Students Tracked', sub: 'Real-time insights' },
               { value: '₹8.26L', label: 'Avg Package', sub: 'KMIT Batch 2025-26' },
-              { value: '15', label: 'Core Features', sub: 'Fully implemented' },
+              { value: '89%', label: 'Avg Readiness', sub: 'Platform-wide' },
             ].map(s => (
               <div key={s.label}>
                 <div className="text-4xl font-black text-white mb-1">{s.value}</div>
@@ -86,7 +86,7 @@ export default function LandingPage() {
         <div className="text-center mb-16">
           <div className="text-xs font-semibold text-blue-400 uppercase tracking-widest mb-3">Complete Platform</div>
           <h2 className="text-4xl font-black mb-4">Everything placement needs</h2>
-          <p className="text-blue-200/70 max-w-xl mx-auto">15 mandatory features, 10 good-to-have features, all production-ready.</p>
+          <p className="text-blue-200/70 max-w-xl mx-auto">End-to-end partner management — from MOU signing to placement offer, powered by AI.</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {FEATURES.map(f => (
@@ -197,7 +197,7 @@ export default function LandingPage() {
             <div className="h-6 w-6 rounded bg-blue-600 flex items-center justify-center text-xs font-bold">C</div>
             <span className="text-sm font-semibold">CareerOS Partner Intelligence</span>
           </div>
-          <p className="text-xs text-blue-400/50 text-center">Built for SummerSaaS Hackathon 2026 — Track 5B · © 2026 Skill Tank</p>
+          <p className="text-xs text-blue-400/50 text-center">© 2026 Skill Tank · CareerOS Partner Intelligence · All rights reserved</p>
           <div className="flex gap-6 text-xs text-blue-400/50">
             <Link href="/login" className="hover:text-blue-300 transition-colors">Login</Link>
             <Link href="/signup" className="hover:text-blue-300 transition-colors">Sign Up</Link>
@@ -212,7 +212,7 @@ function DashboardPreview() {
   const cols = [
     { label: 'Partner Colleges', val: '25', delta: '+3 this month', color: 'text-blue-400' },
     { label: 'Active Students', val: '2,547', delta: '89% readiness avg', color: 'text-green-400' },
-    { label: 'Platform Revenue', val: '₹12.4L', delta: 'this academic year', color: 'text-purple-400' },
+    { label: 'Platform Revenue', val: '₹1.62Cr', delta: 'this academic year', color: 'text-purple-400' },
     { label: 'Placements 25-26', val: '1,203', delta: '₹8.26 avg LPA', color: 'text-yellow-400' },
   ]
   const colleges = [
@@ -271,14 +271,14 @@ function DashboardPreview() {
 }
 
 const FEATURES = [
-  { icon: '🏛️', bg: 'bg-blue-500/15', title: 'College Management', desc: 'Full lifecycle: onboarding, approvals, health scores, and contact tracking.', badge: 'Mandatory' },
-  { icon: '👨‍🎓', bg: 'bg-green-500/15', title: 'Student Intelligence', desc: 'Readiness scores, risk flags, DSA progress, and 360° student profiles.', badge: 'Mandatory' },
-  { icon: '📄', bg: 'bg-yellow-500/15', title: 'MOU Management', desc: 'Upload, track, and renew MOUs with expiry alerts and revenue share terms.', badge: 'Mandatory' },
-  { icon: '📚', bg: 'bg-purple-500/15', title: 'Training Programs', desc: 'CRT, DSA, Aptitude, Interview Master — cohorts, enrollments, completion.', badge: 'Mandatory' },
-  { icon: '👩‍🏫', bg: 'bg-pink-500/15', title: 'FDP Sessions', desc: 'Schedule faculty development programs, track attendance, and certificates.', badge: 'Mandatory' },
-  { icon: '💰', bg: 'bg-emerald-500/15', title: 'Revenue Sharing', desc: 'Automated revenue calculations, payout approvals, and audit trail.', badge: 'Mandatory' },
-  { icon: '💬', bg: 'bg-cyan-500/15', title: 'Communication Logs', desc: 'Log calls, meetings, and emails per college with follow-up reminders.', badge: 'Mandatory' },
-  { icon: '📊', bg: 'bg-indigo-500/15', title: 'Analytics & Reports', desc: 'One-click PDF/Excel reports, charts, leaderboards, and AI summaries.', badge: 'Mandatory' },
+  { icon: '🏛️', bg: 'bg-blue-500/15', title: 'College Management', desc: 'Full lifecycle: onboarding, approvals, health scores, and contact tracking.', badge: 'Core' },
+  { icon: '👨‍🎓', bg: 'bg-green-500/15', title: 'Student Intelligence', desc: 'Readiness scores, risk flags, DSA progress, and 360° student profiles.', badge: 'Core' },
+  { icon: '📄', bg: 'bg-yellow-500/15', title: 'MOU Management', desc: 'Upload, track, and renew MOUs with expiry alerts and revenue share terms.', badge: 'Core' },
+  { icon: '📚', bg: 'bg-purple-500/15', title: 'Training Programs', desc: 'CRT, DSA, Aptitude, Interview Master — cohorts, enrollments, completion.', badge: 'Core' },
+  { icon: '👩‍🏫', bg: 'bg-pink-500/15', title: 'FDP Sessions', desc: 'Schedule faculty development programs, track attendance, and certificates.', badge: 'Core' },
+  { icon: '💰', bg: 'bg-emerald-500/15', title: 'Revenue Sharing', desc: 'Automated revenue calculations, payout approvals, and audit trail.', badge: 'Core' },
+  { icon: '💬', bg: 'bg-cyan-500/15', title: 'Communication Logs', desc: 'Log calls, meetings, and emails per college with follow-up reminders.', badge: 'Core' },
+  { icon: '📊', bg: 'bg-indigo-500/15', title: 'Analytics & Reports', desc: 'One-click PDF/Excel reports, charts, leaderboards, and AI summaries.', badge: 'Core' },
   { icon: '🔔', bg: 'bg-orange-500/15', title: 'Smart Notifications', desc: 'Real-time alerts for MOU expiry, payouts, risk flags, and milestones.', badge: 'System' },
 ]
 

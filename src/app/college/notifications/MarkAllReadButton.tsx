@@ -1,17 +1,23 @@
 'use client'
 
-import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { CheckCheck } from 'lucide-react'
+import { toast } from 'sonner'
 
 export function MarkAllReadButton({ userId }: { userId: string }) {
   const router = useRouter()
 
   async function markAll() {
-    const supabase = createClient()
-    await supabase.from('notifications').update({ read: true })
-      .eq('recipient_user_id', userId).eq('read', false)
-    router.refresh()
+    try {
+      const res = await fetch('/api/notifications/mark-read', { method: 'POST' })
+      if (!res.ok) {
+        const json = await res.json()
+        throw new Error(json.error || 'Failed')
+      }
+      router.refresh()
+    } catch (err: any) {
+      toast.error(err.message)
+    }
   }
 
   return (

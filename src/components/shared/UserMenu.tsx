@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { LogOut, User, ChevronDown } from 'lucide-react'
+import { LogOut, ChevronDown } from 'lucide-react'
 
 interface UserMenuProps {
   name: string
@@ -50,7 +50,7 @@ export function UserMenu({ name, email, role }: UserMenuProps) {
       {open && (
         <>
           <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full mt-1 z-40 w-52 rounded-lg border bg-card shadow-lg py-1">
+          <div className="absolute right-0 bottom-full mb-1 z-40 w-52 rounded-lg border bg-card shadow-lg py-1">
             <div className="px-3 py-2 border-b">
               <p className="text-sm font-medium truncate">{name}</p>
               <p className="text-xs text-muted-foreground truncate">{email}</p>

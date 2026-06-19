@@ -41,8 +41,8 @@ export default async function AdminDashboard() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatsCard title="Partner Colleges" value={activeColleges || 0} icon={Building2}
-          delta={`${pendingColleges || 0} pending approval`} trend="neutral" />
+        <StatsCard title="Partner Colleges" value={totalColleges || 0} icon={Building2}
+          delta={`${activeColleges || 0} active · ${pendingColleges || 0} pending`} trend="up" />
         <StatsCard title="Total Students" value={(totalStudents || 0).toLocaleString()} icon={Users}
           delta={`${placementRate}% placed`} trend="up" />
         <StatsCard title="Placement Rate" value={`${placementRate}%`} icon={TrendingUp}
@@ -156,7 +156,7 @@ export default async function AdminDashboard() {
             </Link>
           </div>
         </div>
-      )}
-    </div>
+      )}    </div>
   )
 }
+

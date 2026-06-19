@@ -10,11 +10,12 @@ export default async function AdminAnalyticsPage() {
   const supabase = createServiceClient()
 
   // Get all colleges with aggregate stats
-  const { data: colleges } = await supabase
+  const { data: colleges, error: analyticsError } = await supabase
     .from('colleges')
     .select('id, name, code, city, state, status, college_health_history(score, captured_at)')
     .eq('status', 'approved')
     .order('name')
+  if (analyticsError) console.error('[analytics/page] colleges query:', analyticsError)
 
   // Get placement counts per college
   const { data: placements } = await supabase
@@ -230,7 +231,7 @@ export default async function AdminAnalyticsPage() {
             <p className="text-sm font-semibold">{band.label}</p>
             <p className="text-xs text-muted-foreground mt-0.5">{band.desc}</p>
             <p className="text-3xl font-bold mt-2">{band.count}</p>
-            <p className="text-xs text-muted-foreground">colleges</p>
+            <p className="text-xs text-muted-foreground mt-1">colleges</p>
           </div>
         ))}
       </div>
