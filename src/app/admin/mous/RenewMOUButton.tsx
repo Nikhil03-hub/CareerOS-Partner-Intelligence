@@ -9,9 +9,11 @@ interface Props {
   mouId: string
   collegeName: string
   currentExpiry: string
+  currentSeats: number
+  currentShare: number
 }
 
-export function RenewMOUButton({ mouId, collegeName, currentExpiry }: Props) {
+export function RenewMOUButton({ mouId, collegeName, currentExpiry, currentSeats, currentShare }: Props) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -22,8 +24,8 @@ export function RenewMOUButton({ mouId, collegeName, currentExpiry }: Props) {
   const defaultExpiry = base.toISOString().slice(0, 10)
 
   const [newExpiry, setNewExpiry] = useState(defaultExpiry)
-  const [seats, setSeats] = useState('100')
-  const [shareP, setShareP] = useState('10')
+  const [seats, setSeats] = useState(String(currentSeats || 100))
+  const [shareP, setShareP] = useState(String(currentShare || 18))
 
   async function handleRenew(e: React.FormEvent) {
     e.preventDefault()
@@ -74,14 +76,16 @@ export function RenewMOUButton({ mouId, collegeName, currentExpiry }: Props) {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">Seats</label>
-                  <input type="number" value={seats} onChange={e => setSeats(e.target.value)} min="10"
+                  <label className="block text-sm font-medium mb-1.5">Seats Purchased</label>
+                  <input type="number" value={seats} onChange={e => setSeats(e.target.value)} min="1"
                     className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                  <p className="text-[10px] text-muted-foreground mt-1">Current: {currentSeats}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1.5">Rev Share %</label>
                   <input type="number" value={shareP} onChange={e => setShareP(e.target.value)} min="1" max="50"
                     className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                  <p className="text-[10px] text-muted-foreground mt-1">Current: {currentShare}%</p>
                 </div>
               </div>
               <div className="flex gap-3 pt-1">

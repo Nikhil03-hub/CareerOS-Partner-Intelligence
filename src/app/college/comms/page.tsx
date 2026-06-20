@@ -4,6 +4,7 @@ import { formatDate, formatRelative } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { MessageSquare, Phone, Video, StickyNote } from 'lucide-react'
 import { LogCommButton } from './LogCommButton'
+import { ChatPanel } from './ChatPanel'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,47 +21,72 @@ export default async function CommsPage() {
 
   const collegeId = user.user_metadata?.college_id as string
 
-  const { data: logs } = await supabase.from('communication_logs')
-    .select('*')
-    .eq('college_id', collegeId)
-    .order('created_at', { ascending: false })
+  const [logsRes, userProfileRes] = await Promise.all([
+    supabase.from('communication_logs')
+      .select('*')
+      .eq('college_id', collegeId)
+      .order('created_at', { ascending: false }),
+    supabase.from('users').select('id, name, role').eq('auth_id', user.id).single(),
+  ])
 
-  const noteCount = logs?.filter(l => l.type === 'note').length || 0
-  const meetingCount = logs?.filter(l => l.type === 'meeting').length || 0
-  const callCount = logs?.filter(l => l.type === 'call').length || 0
+  const logs = logsRes.data || []
+  const userProfile = userProfileRes.data
+
+  const noteCount = logs.filter(l => l.type === 'note').length
+  const meetingCount = logs.filter(l => l.type === 'meeting').length
+  const callCount = logs.filter(l => l.type === 'call').length
 
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1>Communication Log</h1>
-          <p className="text-muted-foreground text-sm mt-1">All interactions with Skill Tank account managers</p>
+          <h1>Communications</h1>
+          <p className="text-muted-foreground text-sm mt-1">Live chat and activity log with Skill Tank account managers</p>
         </div>
         <LogCommButton collegeId={collegeId} />
       </div>
 
+      {/* G2: Live Chat */}
+      <div>
+        <div className="flex items-center gap-2 mb-3">
+          <MessageSquare className="h-4 w-4 text-primary" />
+          <h3>Live Chat (G2)</h3>
+          <span className="text-[10px] bg-green-100 text-green-700 border border-green-200 px-2 py-0.5 rounded-full font-semibold">
+            Supabase Realtime
+          </span>
+        </div>
+        <ChatPanel
+          currentUserId={user.id}
+          currentUserName={userProfile?.name || user.email || 'TPO'}
+          currentRole={userProfile?.role || 'tpo'}
+        />
+      </div>
+
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
-        {[
-          { label: 'Notes', count: noteCount, icon: StickyNote, color: 'text-yellow-600' },
-          { label: 'Meetings', count: meetingCount, icon: Video, color: 'text-blue-600' },
-          { label: 'Calls', count: callCount, icon: Phone, color: 'text-green-600' },
-        ].map(s => (
-          <div key={s.label} className="stat-card flex items-center gap-4">
-            <s.icon className={cn('h-8 w-8', s.color)} />
-            <div>
-              <p className="stat-value">{s.count}</p>
-              <p className="stat-label">{s.label}</p>
+      <div>
+        <h3 className="mb-3">Communication Log</h3>
+        <div className="grid grid-cols-3 gap-4">
+          {[
+            { label: 'Notes', count: noteCount, icon: StickyNote, color: 'text-yellow-600' },
+            { label: 'Meetings', count: meetingCount, icon: Video, color: 'text-blue-600' },
+            { label: 'Calls', count: callCount, icon: Phone, color: 'text-green-600' },
+          ].map(s => (
+            <div key={s.label} className="stat-card flex items-center gap-4">
+              <s.icon className={cn('h-8 w-8', s.color)} />
+              <div>
+                <p className="stat-value">{s.count}</p>
+                <p className="stat-label">{s.label}</p>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       {/* Timeline */}
       <div className="rounded-xl border bg-card">
         <div className="px-5 py-4 border-b"><h3>Communication Timeline</h3></div>
         <div className="divide-y">
-          {logs?.map(l => {
+          {logs.map(l => {
             const Icon = TYPE_ICONS[l.type as keyof typeof TYPE_ICONS] || StickyNote
             return (
               <div key={l.id} className="px-5 py-4 flex gap-4 hover:bg-muted/20 transition-colors">
@@ -87,7 +113,7 @@ export default async function CommsPage() {
             )
           })}
         </div>
-        {(logs?.length || 0) === 0 && (
+        {logs.length === 0 && (
           <p className="px-5 py-8 text-center text-sm text-muted-foreground">No communication logs yet</p>
         )}
       </div>

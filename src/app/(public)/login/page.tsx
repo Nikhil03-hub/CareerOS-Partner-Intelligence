@@ -82,8 +82,12 @@ export default function LoginPage() {
           <div className="space-y-1">
             {[
               { role: 'Super Admin', email: 'admin@careeros.app' },
-              { role: 'TPO – KMIT', email: 'tpo@kmit.edu' },
               { role: 'Account Manager', email: 'am@careeros.app' },
+              { role: 'TPO – KMIT', email: 'tpo@kmit.edu' },
+              { role: 'HOD – KMIT', email: 'hod@kmit.edu' },
+              { role: 'Faculty – KMIT', email: 'faculty@kmit.edu' },
+              { role: 'Club Coord – KMIT', email: 'club@kmit.edu' },
+              { role: 'TPO – VNR VJIET', email: 'tpo@vnrvjiet.edu' },
             ].map(d => (
               <button
                 key={d.email}

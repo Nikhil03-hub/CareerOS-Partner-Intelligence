@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import { cn, formatDate, getStatusBadge } from '@/lib/utils'
 import Link from 'next/link'
+import { ATSAnalyzer } from './ATSAnalyzer'
+import { Video, Brain, TrendingUp, AlertCircle } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -226,7 +228,26 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
                   : `Student is on track. Continue current training trajectory.`}
               </p>
             </div>
+
+            {/* AI Mock Interview */}
+            <div className="mt-4 rounded-lg border border-violet-200 bg-violet-50/50 dark:bg-violet-950/20 dark:border-violet-800 p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <Video className="h-4 w-4 text-violet-600" />
+                <p className="text-xs font-semibold text-violet-700 dark:text-violet-400">AI Mock Interview</p>
+                <span className="text-[10px] bg-violet-100 dark:bg-violet-900 text-violet-600 dark:text-violet-300 px-1.5 py-0.5 rounded-full">Powered by LiveAvatar</span>
+              </div>
+              <p className="text-xs text-muted-foreground mb-3">Practice real interview scenarios with AI feedback. Results feed back into this student's readiness score.</p>
+              <Link
+                href={`/college/interview?student=${s.id}&name=${encodeURIComponent(s.name)}`}
+                className="flex items-center justify-center gap-2 w-full bg-violet-600 hover:bg-violet-500 text-white rounded-lg py-2 text-xs font-semibold transition-colors"
+              >
+                <Video className="h-3.5 w-3.5" />
+                Launch AI Mock Interview
+              </Link>
+            </div>
           </div>
+          {/* ATS Resume Analyzer */}
+          <ATSAnalyzer studentId={s.id} cgpa={s.cgpa || 0} />
         </div>
 
         {/* RIGHT: Placement Journey Timeline */}

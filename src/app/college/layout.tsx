@@ -4,18 +4,22 @@ import Link from 'next/link'
 import { UserMenu } from '@/components/shared/UserMenu'
 import {
   LayoutDashboard, Users, TrendingUp, BookOpen,
-  FileText, DollarSign, Bell, BarChart3, Award, MessageSquare, LineChart, Bot
+  FileText, DollarSign, Bell, BarChart3, Award, MessageSquare, LineChart, Bot, Video, Wrench, Layers, PieChart
 } from 'lucide-react'
 
 const COLLEGE_NAV = [
   { label: 'Dashboard', href: '/college/dashboard', icon: LayoutDashboard, roles: ['tpo', 'hod', 'faculty_coord', 'club_coord'] },
   { label: 'AI Copilot', href: '/college/copilot', icon: Bot, roles: ['tpo', 'hod'] },
+  { label: 'AI Interview', href: '/college/interview', icon: Video, roles: ['tpo', 'hod', 'faculty_coord'] },
+  { label: 'Workshops', href: '/college/workshops', icon: Wrench, roles: ['tpo', 'hod', 'club_coord', 'faculty_coord'] },
+  { label: 'Programs', href: '/college/programs', icon: Layers, roles: ['tpo', 'hod', 'faculty_coord'] },
   { label: 'Students', href: '/college/students', icon: Users, roles: ['tpo', 'hod', 'faculty_coord', 'club_coord'] },
   { label: 'Placements', href: '/college/placements', icon: TrendingUp, roles: ['tpo', 'hod', 'club_coord'] },
   { label: 'Training', href: '/college/training', icon: BookOpen, roles: ['tpo', 'hod', 'faculty_coord'] },
   { label: 'FDP', href: '/college/fdp', icon: Award, roles: ['tpo', 'faculty_coord'] },
   { label: 'MOU', href: '/college/mou', icon: FileText, roles: ['tpo'] },
   { label: 'Revenue', href: '/college/revenue', icon: DollarSign, roles: ['tpo'] },
+  { label: 'Dept Analytics', href: '/college/department-analytics', icon: PieChart, roles: ['hod', 'tpo'] },
   { label: 'Benchmarking', href: '/college/benchmarking', icon: LineChart, roles: ['tpo', 'hod'] },
   { label: 'Reports', href: '/college/reports', icon: BarChart3, roles: ['tpo', 'hod'] },
   { label: 'Communications', href: '/college/comms', icon: MessageSquare, roles: ['tpo'] },
@@ -66,7 +70,7 @@ export default async function CollegeLayout({ children }: { children: React.Reac
         </div>
       </aside>
 
-            <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto">
         {children}
       </main>
     </div>

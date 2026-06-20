@@ -2,7 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { formatDate, getStatusBadge } from '@/lib/utils'
 import { GenerateReportButton } from './GenerateReportButton'
-import { FileText, BarChart3, TrendingUp, DollarSign } from 'lucide-react'
+import { DigestButton } from './DigestButton'
+import { FileText, BarChart3, TrendingUp, DollarSign, Zap } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,11 +21,16 @@ export default async function ReportsPage() {
 
   const collegeId = user.user_metadata?.college_id as string
 
-  const { data: reports } = await supabase.from('reports')
-    .select('*')
-    .eq('college_id', collegeId)
-    .order('created_at', { ascending: false })
-    .limit(20)
+  const [collegeRes, reportsRes] = await Promise.all([
+    supabase.from('colleges').select('name').eq('id', collegeId).single(),
+    supabase.from('reports')
+      .select('*')
+      .eq('college_id', collegeId)
+      .order('created_at', { ascending: false })
+      .limit(20),
+  ])
+
+  const reports = reportsRes.data || []
 
   return (
     <div className="p-6 space-y-6">
@@ -40,9 +46,30 @@ export default async function ReportsPage() {
             <rt.icon className={`h-8 w-8 mb-3 ${rt.color}`} />
             <h3 className="text-sm font-semibold mb-1">{rt.title}</h3>
             <p className="text-xs text-muted-foreground mb-4 leading-relaxed">{rt.desc}</p>
-            <GenerateReportButton collegeId={collegeId} reportType={rt.type} reportTitle={rt.title} />
+            <GenerateReportButton
+              collegeId={collegeId}
+              reportType={rt.type}
+              reportTitle={rt.title}
+              collegeName={collegeRes.data?.name}
+            />
           </div>
         ))}
+      </div>
+
+      {/* Automated Digest (G6) */}
+      <div className="rounded-xl border bg-card p-5">
+        <div className="flex items-start gap-3 mb-4">
+          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+            <Zap className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h3 className="font-semibold">Automated Digest Report (G6)</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Generate an AI-powered monthly digest with placement trends, training completion, and executive recommendations. Delivered to your notifications.
+            </p>
+          </div>
+        </div>
+        <DigestButton collegeId={collegeId} />
       </div>
 
       {/* Generated reports */}
@@ -62,7 +89,7 @@ export default async function ReportsPage() {
             </tr>
           </thead>
           <tbody>
-            {reports?.map(r => (
+            {reports.map(r => (
               <tr key={r.id} className="hover:bg-muted/30">
                 <td className="font-medium text-sm">{r.title}</td>
                 <td>
@@ -73,21 +100,17 @@ export default async function ReportsPage() {
                 <td>
                   {r.file_url
                     ? <a href={r.file_url} target="_blank" rel="noopener" className="text-xs text-primary hover:underline">Download PDF</a>
-                    : <span className="text-xs text-muted-foreground">Processing…</span>
+                    : <span className="text-xs text-muted-foreground">In-session only</span>
                   }
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        {(reports?.length || 0) === 0 && (
-          <div className="px-5 py-12 text-center">
-            <FileText className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground">No reports generated yet. Generate your first report above.</p>
-          </div>
+        {reports.length === 0 && (
+          <p className="px-5 py-8 text-center text-sm text-muted-foreground">No reports generated yet</p>
         )}
       </div>
     </div>
   )
-
 }

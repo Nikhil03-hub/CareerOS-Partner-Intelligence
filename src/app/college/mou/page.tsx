@@ -4,6 +4,7 @@ import { getStatusBadge, formatDate, formatDaysUntil } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { AlertTriangle, FileText, CheckCircle2 } from 'lucide-react'
 import { MOUUploadButton } from './MOUUploadButton'
+import { ESignButton } from './ESignButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -59,7 +60,7 @@ export default async function MOUPage() {
               { label: 'Seats Purchased', value: activeMOU.seats_purchased },
               { label: 'Seats Used', value: activeMOU.seats_used },
               { label: 'Accrued Share', value: `₹${((activeMOU.accrued_share_inr || 0) / 100000).toFixed(2)}L` },
-              { label: 'eSign Status', value: activeMOU.esign_status || 'pending' },
+              { label: 'eSign Status', value: activeMOU.esign_status === 'signed' ? `Signed by ${activeMOU.signed_by || 'TPO'}` : (activeMOU.esign_status || 'unsigned') },
             ].map(s => (
               <div key={s.label}>
                 <p className="text-xs text-muted-foreground">{s.label}</p>
@@ -68,16 +69,20 @@ export default async function MOUPage() {
             ))}
           </div>
 
-          {activeMOU.status === 'expiring' && (
-            <div className="mt-4 flex gap-3">
-              <button className="bg-yellow-600 hover:bg-yellow-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                Request Renewal
-              </button>
-              <button className="border border-yellow-400 text-yellow-800 hover:bg-yellow-100 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                Download PDF
-              </button>
-            </div>
-          )}
+          <div className="mt-4 flex gap-3 flex-wrap">
+            {activeMOU.esign_status !== 'signed' && (
+              <ESignButton
+                mouId={activeMOU.id}
+                mouTitle={activeMOU.title}
+                currentEsignStatus={activeMOU.esign_status || 'unsigned'}
+              />
+            )}
+            {activeMOU.esign_status === 'signed' && (
+              <span className="flex items-center gap-1.5 text-sm text-green-700 font-medium">
+                <CheckCircle2 className="h-4 w-4" /> Digitally signed by {activeMOU.signed_by}
+              </span>
+            )}
+          </div>
         </div>
       )}
 

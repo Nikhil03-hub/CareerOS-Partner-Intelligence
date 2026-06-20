@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { revalidatePath } from 'next/cache'
 
 export async function POST(req: NextRequest) {
   const { mouId, newExpiry, seats, shareP } = await req.json()
@@ -41,5 +42,6 @@ export async function POST(req: NextRequest) {
     read: false,
   })
 
+  revalidatePath('/admin/mous')
   return NextResponse.json({ success: true })
 }

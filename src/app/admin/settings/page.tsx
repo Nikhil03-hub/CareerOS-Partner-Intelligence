@@ -1,6 +1,7 @@
 import { createServiceClient } from '@/lib/supabase/server'
 import { FixRealismButton } from './FixRealismButton'
 import { RecomputeHealthButton } from './RecomputeHealthButton'
+import { DemoResetButton } from './DemoResetButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,6 +18,23 @@ export default async function SettingsPage() {
       </div>
 
       <div className="space-y-4">
+        {/* One-Click Demo Reset */}
+        <div className="rounded-xl border-2 border-dashed border-yellow-300 bg-yellow-50/50 dark:bg-yellow-950/10 dark:border-yellow-800 p-5">
+          <div className="flex items-start gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-base font-bold">🔄 One-Click Demo Reset</span>
+                <span className="text-[10px] bg-yellow-200 text-yellow-800 px-2 py-0.5 rounded-full font-semibold">JUDGE TOOL</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Restores all seeded demo data to a clean, realistic showcase state. Runs Fix Realism + Recompute Health in sequence.
+                Use this to let judges explore freely and then reset to the ideal demo state.
+              </p>
+            </div>
+            <DemoResetButton />
+          </div>
+        </div>
+
         {/* Notification integrations */}
         <div className="rounded-xl border bg-card p-5">
           <h3 className="mb-4">Notification Integrations</h3>
@@ -96,7 +114,7 @@ export default async function SettingsPage() {
               { label: 'Database', value: 'PostgreSQL (Supabase)' },
               { label: 'Auth', value: 'Supabase Auth' },
               { label: 'Storage', value: 'Supabase Storage' },
-              { label: 'AI Engine', value: 'Placement Predictor v2' },
+              { label: 'AI Engine', value: 'CareerOS Intelligence v2' },
               { label: 'Plan', value: 'Enterprise' },
             ].map(s => (
               <div key={s.label}>

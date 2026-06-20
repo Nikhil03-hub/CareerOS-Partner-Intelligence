@@ -226,7 +226,7 @@ async function downloadPDF(data: any, collegeName: string, reportLabel: string, 
     doc.text('PLACEMENT HISTORY (YEAR-ON-YEAR)', M, y)
     y += 3
 
-    (doc as any).autoTable({
+    ;(doc as any).autoTable({
       startY: y,
       head: [['Academic Year', 'Offers', 'Companies', 'Avg CTC (LPA)', 'Top Offer', 'Top Company']],
       body: data.yearSummaries.map((yr: any) => [
@@ -262,7 +262,7 @@ async function downloadPDF(data: any, collegeName: string, reportLabel: string, 
       ['Overall Score', `${hs}/100`, hs >= 70 ? 'Healthy' : hs >= 50 ? 'Moderate' : 'Critical'],
     ]
 
-    (doc as any).autoTable({
+    ;(doc as any).autoTable({
       startY: y,
       head: [['Factor', 'Value', 'Status']],
       body: factors,
@@ -282,7 +282,7 @@ async function downloadPDF(data: any, collegeName: string, reportLabel: string, 
     doc.text('TRAINING COHORTS', M, y)
     y += 3
 
-    (doc as any).autoTable({
+    ;(doc as any).autoTable({
       startY: y,
       head: [['Cohort Name', 'Enrolled', 'Completion %', 'Status']],
       body: data.cohorts.map((c: any) => [
@@ -307,7 +307,7 @@ async function downloadPDF(data: any, collegeName: string, reportLabel: string, 
     doc.text('FDP SESSIONS', M, y)
     y += 3
 
-    (doc as any).autoTable({
+    ;(doc as any).autoTable({
       startY: y,
       head: [['Title', 'Date', 'Status', 'Registered']],
       body: data.fdp.map((f: any) => [
@@ -332,7 +332,7 @@ async function downloadPDF(data: any, collegeName: string, reportLabel: string, 
     doc.text('REVENUE SHARE HISTORY', M, y)
     y += 3
 
-    (doc as any).autoTable({
+    ;(doc as any).autoTable({
       startY: y,
       head: [['Period', 'Gross Amount', 'Share Amount', 'Status']],
       body: data.revShare.map((rv: any) => [
@@ -358,7 +358,7 @@ async function downloadPDF(data: any, collegeName: string, reportLabel: string, 
     doc.text('MOU / PARTNERSHIP DETAILS', M, y)
     y += 3
 
-    (doc as any).autoTable({
+    ;(doc as any).autoTable({
       startY: y,
       head: [['Field', 'Value']],
       body: [

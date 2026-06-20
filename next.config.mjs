@@ -9,6 +9,12 @@ const nextConfig = {
     ],
   },
   experimental: {
+    // Disable the client-side router cache so every navigation fetches fresh
+    // server data (fixes "updates only show after manual refresh").
+    staleTimes: {
+      dynamic: 0,
+      static: 0,
+    },
     serverActions: {
       allowedOrigins: ['localhost:3000', '*.vercel.app'],
     },

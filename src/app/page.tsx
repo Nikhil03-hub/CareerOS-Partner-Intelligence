@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { CountUp } from '@/components/shared/CountUp'
 
 export default function LandingPage() {
   return (
@@ -65,18 +66,34 @@ export default function LandingPage() {
       <section className="border-t border-b border-white/5 py-12 bg-white/[0.02]">
         <div className="max-w-5xl mx-auto px-8">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 text-center">
-            {[
-              { value: '25+', label: 'Partner Colleges', sub: 'Telangana & AP' },
-              { value: '2,500+', label: 'Students Tracked', sub: 'Real-time insights' },
-              { value: '₹8.26L', label: 'Avg Package', sub: 'KMIT Batch 2025-26' },
-              { value: '89%', label: 'Avg Readiness', sub: 'Platform-wide' },
-            ].map(s => (
-              <div key={s.label}>
-                <div className="text-4xl font-black text-white mb-1">{s.value}</div>
-                <div className="text-sm font-semibold text-blue-200 mb-0.5">{s.label}</div>
-                <div className="text-xs text-blue-400/60">{s.sub}</div>
+            <div>
+              <div className="text-4xl font-black text-white mb-1">
+                <CountUp end={25} suffix="+" duration={1200} />
               </div>
-            ))}
+              <div className="text-sm font-semibold text-blue-200 mb-0.5">Partner Colleges</div>
+              <div className="text-xs text-blue-400/60">Telangana &amp; AP</div>
+            </div>
+            <div>
+              <div className="text-4xl font-black text-white mb-1">
+                <CountUp end={2500} suffix="+" duration={1600} />
+              </div>
+              <div className="text-sm font-semibold text-blue-200 mb-0.5">Students Tracked</div>
+              <div className="text-xs text-blue-400/60">Real-time insights</div>
+            </div>
+            <div>
+              <div className="text-4xl font-black text-white mb-1">
+                ₹<CountUp end={8.26} suffix="L" decimals={2} duration={1400} />
+              </div>
+              <div className="text-sm font-semibold text-blue-200 mb-0.5">Avg Package</div>
+              <div className="text-xs text-blue-400/60">KMIT Batch 2025-26</div>
+            </div>
+            <div>
+              <div className="text-4xl font-black text-white mb-1">
+                <CountUp end={89} suffix="%" duration={1200} />
+              </div>
+              <div className="text-sm font-semibold text-blue-200 mb-0.5">Avg Readiness</div>
+              <div className="text-xs text-blue-400/60">Platform-wide</div>
+            </div>
           </div>
         </div>
       </section>

@@ -98,6 +98,8 @@ export default async function AdminMOUsPage({ searchParams }: { searchParams: { 
                       mouId={m.id}
                       collegeName={college?.name || college?.code || ''}
                       currentExpiry={m.expiry_date}
+                      currentSeats={m.seats_purchased || 100}
+                      currentShare={m.revenue_share_pct || 18}
                     />
                   </td>
                 </tr>

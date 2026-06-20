@@ -1,6 +1,6 @@
 import { createServiceClient } from '@/lib/supabase/server'
 import { formatCurrency, formatDate, getStatusBadge, calcHealthLabel, calcHealthColor } from '@/lib/utils'
-import { Building2, Users, TrendingUp, DollarSign, AlertTriangle, FileText } from 'lucide-react'
+import { Building2, Users, TrendingUp, DollarSign, AlertTriangle, FileText, Zap, Target, ArrowUpRight } from 'lucide-react'
 import { StatsCard } from '@/components/shared/StatsCard'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
@@ -19,6 +19,9 @@ export default async function AdminDashboard() {
     colleges,
     expiringMOUs,
     recentEvents,
+    revShareData,
+    highRiskStudents,
+    topColleges,
   ] = await Promise.all([
     supabase.from('colleges').select('*', { count: 'exact', head: true }),
     supabase.from('colleges').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
@@ -28,9 +31,14 @@ export default async function AdminDashboard() {
     supabase.from('colleges').select('id, name, code, health_score, status, city, state').order('health_score', { ascending: true }).limit(6),
     supabase.from('mous').select('id, title, expiry_date, status, colleges(name, code)').eq('status', 'expiring').order('expiry_date').limit(5),
     supabase.from('activity_events').select('id, title, event_type, created_at, colleges(name, code)').order('created_at', { ascending: false }).limit(8),
+    supabase.from('mous').select('accrued_share_inr').eq('status', 'active'),
+    supabase.from('students').select('id').eq('risk_level', 'high'),
+    supabase.from('colleges').select('id, name, code, health_score').order('health_score', { ascending: false }).limit(3),
   ])
 
   const placementRate = totalStudents ? Math.round(((placedStudents || 0) / totalStudents) * 100) : 0
+  const totalRevenue = revShareData?.data?.reduce((s: number, m: any) => s + (m.accrued_share_inr || 0), 0) || 0
+  const highRiskCount = highRiskStudents?.data?.length || 0
 
   return (
     <div className="p-6 space-y-6">
@@ -46,9 +54,9 @@ export default async function AdminDashboard() {
         <StatsCard title="Total Students" value={(totalStudents || 0).toLocaleString()} icon={Users}
           delta={`${placementRate}% placed`} trend="up" />
         <StatsCard title="Placement Rate" value={`${placementRate}%`} icon={TrendingUp}
-          trend="up" />
-        <StatsCard title="Colleges At Risk" value={(colleges.data?.filter(c => (c.health_score || 0) < 50).length || 0)}
-          icon={AlertTriangle} iconColor="text-red-500" trend="down" delta="health score <50" />
+          trend="up" delta={`${placedStudents || 0} placed`} />
+        <StatsCard title="Revenue Accrued" value={`₹${(totalRevenue/100000).toFixed(2)}L`} icon={DollarSign}
+          iconColor="text-green-600" trend="up" delta="active MOUs" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -140,6 +148,78 @@ export default async function AdminDashboard() {
         </div>
       </div>
 
+      {/* Opportunity Radar */}
+      <div className="rounded-xl border bg-card">
+        <div className="px-5 py-4 border-b flex items-center gap-2">
+          <Target className="h-4 w-4 text-primary" />
+          <h3>Opportunity Radar</h3>
+          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full ml-auto">AI Insights</span>
+        </div>
+        <div className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {(expiringMOUs.data?.length || 0) > 0 && (
+            <div className="rounded-lg border border-yellow-200 bg-yellow-50 dark:bg-yellow-950/20 dark:border-yellow-800 p-3">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 text-yellow-600 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs font-semibold text-yellow-800 dark:text-yellow-300">
+                    {expiringMOUs.data!.length} MOU{expiringMOUs.data!.length > 1 ? 's' : ''} expiring soon
+                  </p>
+                  <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-0.5">Proactive renewal outreach recommended — high-value partners</p>
+                  <Link href="/admin/mous?status=expiring" className="text-xs text-yellow-700 font-semibold mt-1.5 flex items-center gap-1 hover:underline">
+                    Renew now <ArrowUpRight className="h-3 w-3" />
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
+          {highRiskCount > 0 && (
+            <div className="rounded-lg border border-red-200 bg-red-50 dark:bg-red-950/20 dark:border-red-800 p-3">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs font-semibold text-red-800 dark:text-red-300">{highRiskCount} high-risk students</p>
+                  <p className="text-xs text-red-600 dark:text-red-400 mt-0.5">Students at placement risk — targeted intervention recommended</p>
+                  <Link href="/admin/students?risk=high" className="text-xs text-red-700 font-semibold mt-1.5 flex items-center gap-1 hover:underline">
+                    View students <ArrowUpRight className="h-3 w-3" />
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
+          {(colleges.data?.filter(c => (c.health_score || 0) < 60).length || 0) > 0 && (
+            <div className="rounded-lg border border-orange-200 bg-orange-50 dark:bg-orange-950/20 dark:border-orange-800 p-3">
+              <div className="flex items-start gap-2">
+                <Zap className="h-4 w-4 text-orange-600 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs font-semibold text-orange-800 dark:text-orange-300">
+                    {colleges.data!.filter(c => (c.health_score || 0) < 60).length} colleges below 60 health
+                  </p>
+                  <p className="text-xs text-orange-600 dark:text-orange-400 mt-0.5">Run CRT re-engagement + FDP workshop sessions</p>
+                  <Link href="/admin/colleges" className="text-xs text-orange-700 font-semibold mt-1.5 flex items-center gap-1 hover:underline">
+                    View colleges <ArrowUpRight className="h-3 w-3" />
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
+          {(topColleges.data?.length || 0) > 0 && (
+            <div className="rounded-lg border border-green-200 bg-green-50 dark:bg-green-950/20 dark:border-green-800 p-3 sm:col-span-2 lg:col-span-1">
+              <div className="flex items-start gap-2">
+                <TrendingUp className="h-4 w-4 text-green-600 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs font-semibold text-green-800 dark:text-green-300">Top performing partners</p>
+                  {topColleges.data!.map(c => (
+                    <p key={c.id} className="text-xs text-green-600 dark:text-green-400 mt-0.5">
+                      {c.code} — {c.health_score}/100 · consider AI Interview upsell
+                    </p>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Pending approvals */}
       {(pendingColleges || 0) > 0 && (
         <div className="rounded-xl border border-yellow-200 bg-yellow-50">
@@ -159,4 +239,3 @@ export default async function AdminDashboard() {
       )}    </div>
   )
 }
-

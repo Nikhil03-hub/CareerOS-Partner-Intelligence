@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { revalidatePath } from 'next/cache'
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,13 +12,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const { name, email, role: inviteRole, college_id } = await req.json()
+    const { name, email, role: inviteRole, college_id, password } = await req.json()
     if (!name || !email || !inviteRole) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
+    const collegeRoles = ['tpo', 'hod', 'faculty_coord', 'club_coord']
+    if (collegeRoles.includes(inviteRole) && !college_id) {
+      return NextResponse.json({ error: 'This role requires a college.' }, { status: 400 })
+    }
 
     const admin = createServiceClient()
-    const tempPassword = 'careeros2026'
+    const tempPassword = password || 'careeros2026'
 
     const { data, error: createError } = await admin.auth.admin.createUser({
       email,
@@ -28,8 +33,8 @@ export async function POST(req: NextRequest) {
 
     if (createError) {
       const msg = createError.message?.toLowerCase() || ''
-      if (msg.includes('already registered') || msg.includes('already exists')) {
-        return NextResponse.json({ error: 'A user with that email already exists.' }, { status: 409 })
+      if ((createError as any).code === 'email_exists' || msg.includes('already') || msg.includes('registered')) {
+        return NextResponse.json({ error: 'A user with that email already exists. Use a different email.' }, { status: 409 })
       }
       throw createError
     }
@@ -49,6 +54,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    revalidatePath('/admin/users')
     return NextResponse.json({ success: true, tempPassword })
   } catch (err: any) {
     console.error('[invite-user]', err)
