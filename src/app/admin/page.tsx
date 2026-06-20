@@ -2,6 +2,9 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { formatCurrency, formatDate, getStatusBadge, calcHealthLabel, calcHealthColor } from '@/lib/utils'
 import { Building2, Users, TrendingUp, DollarSign, AlertTriangle, FileText, Zap, Target, ArrowUpRight } from 'lucide-react'
 import { StatsCard } from '@/components/shared/StatsCard'
+import { ExecutiveSummary } from './ExecutiveSummary'
+import { JudgeQuickActions } from './JudgeQuickActions'
+import { HighRiskStudents } from './HighRiskStudents'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 
@@ -45,6 +48,15 @@ export default async function AdminDashboard() {
       <div>
         <h1>Admin Dashboard</h1>
         <p className="text-muted-foreground text-sm mt-1">CareerOS Partner Intelligence — overview of all colleges</p>
+      </div>
+
+      {/* AI Executive Summary — live, computed */}
+      <ExecutiveSummary />
+
+      {/* Judge quick actions + high-risk students */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <JudgeQuickActions />
+        <HighRiskStudents />
       </div>
 
       {/* Stats */}

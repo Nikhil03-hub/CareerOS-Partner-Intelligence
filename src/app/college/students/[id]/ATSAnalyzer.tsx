@@ -56,6 +56,31 @@ export function ATSAnalyzer({ studentId, cgpa }: { studentId: string; cgpa: numb
     }
   }
 
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const name = file.name.toLowerCase()
+    try {
+      if (name.endsWith('.txt')) {
+        const text = await file.text()
+        setResumeText(text); setShowPaste(true)
+        toast.success('Resume loaded — review and click Analyze')
+      } else if (name.endsWith('.docx')) {
+        const arrayBuffer = await file.arrayBuffer()
+        const mammoth: any = await import('mammoth/mammoth.browser')
+        const { value } = await mammoth.extractRawText({ arrayBuffer })
+        if (!value || value.trim().split(/\s+/).length < 30) throw new Error('Not enough readable text in this .docx')
+        setResumeText(value); setShowPaste(true)
+        toast.success('Resume loaded from .docx — review and click Analyze')
+      } else {
+        toast.error('Upload a .txt or .docx file (PDF coming soon), or paste text.')
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Could not read that file — try pasting the text instead.')
+    }
+    e.target.value = ''
+  }
+
   const scoreColor = (s: number) => s >= 70 ? 'text-green-600' : s >= 50 ? 'text-yellow-600' : 'text-red-600'
   const barColor = (s: number) => s >= 70 ? 'bg-green-500' : s >= 50 ? 'bg-yellow-500' : 'bg-red-500'
 
@@ -73,14 +98,22 @@ export function ATSAnalyzer({ studentId, cgpa }: { studentId: string; cgpa: numb
           <p className="text-xs text-muted-foreground">Paste your resume text below. Our AI engine scores ATS compatibility and identifies skill gaps — no file upload needed.</p>
 
           {!showPaste ? (
-            <button
-              onClick={() => setShowPaste(true)}
-              className="w-full border-2 border-dashed border-primary/30 hover:border-primary/60 rounded-lg py-5 flex flex-col items-center gap-2 transition-colors group"
-            >
-              <Upload className="h-6 w-6 text-primary/50 group-hover:text-primary transition-colors" />
-              <span className="text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">Paste Resume Text</span>
-              <span className="text-xs text-muted-foreground">Copy from your resume document</span>
-            </button>
+            <div className="grid grid-cols-2 gap-3">
+              <label className="cursor-pointer border-2 border-dashed border-primary/30 hover:border-primary/60 rounded-lg py-5 flex flex-col items-center gap-2 transition-colors group">
+                <Upload className="h-6 w-6 text-primary/50 group-hover:text-primary transition-colors" />
+                <span className="text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">Upload Resume</span>
+                <span className="text-xs text-muted-foreground">.txt or .docx</span>
+                <input type="file" accept=".txt,.docx,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document" className="hidden" onChange={handleFile} />
+              </label>
+              <button
+                onClick={() => setShowPaste(true)}
+                className="border-2 border-dashed border-primary/30 hover:border-primary/60 rounded-lg py-5 flex flex-col items-center gap-2 transition-colors group"
+              >
+                <Brain className="h-6 w-6 text-primary/50 group-hover:text-primary transition-colors" />
+                <span className="text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">Paste Text</span>
+                <span className="text-xs text-muted-foreground">Copy from your resume</span>
+              </button>
+            </div>
           ) : (
             <div className="space-y-3">
               <textarea

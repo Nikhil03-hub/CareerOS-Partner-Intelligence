@@ -5,8 +5,9 @@ import { predictPlacement } from '@/lib/ai/score'
 import Link from 'next/link'
 import {
   User, GraduationCap, TrendingUp, Brain, AlertTriangle,
-  CheckCircle, ArrowLeft, BookOpen, Award
+  CheckCircle, ArrowLeft, BookOpen, Award, Video
 } from 'lucide-react'
+import { ATSAnalyzer } from '@/app/college/students/[id]/ATSAnalyzer'
 
 export const dynamic = 'force-dynamic'
 
@@ -224,6 +225,23 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
           )}
         </div>
       </div>
+
+      {/* AI Mock Interview — discoverable from admin */}
+      <div className="rounded-xl border border-violet-200 bg-violet-50/50 dark:bg-violet-950/20 dark:border-violet-800 p-5">
+        <div className="flex items-center gap-2 mb-2">
+          <Video className="h-4 w-4 text-violet-600" />
+          <h3 className="text-sm font-semibold text-violet-700 dark:text-violet-400">AI Mock Interview</h3>
+          <span className="text-[10px] bg-violet-100 dark:bg-violet-900 text-violet-600 dark:text-violet-300 px-1.5 py-0.5 rounded-full">Powered by LiveAvatar</span>
+        </div>
+        <p className="text-xs text-muted-foreground mb-3">Live AI interviewer with real-time feedback — results feed into the CareerOS readiness score.</p>
+        <a href="https://embed.liveavatar.com/v1/6bb399fb-fc3c-4e1a-893e-5c4a2de11988?orientation=horizontal" target="_blank" rel="noopener"
+          className="inline-flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-500 text-white rounded-lg px-4 py-2 text-xs font-semibold transition-colors">
+          <Video className="h-3.5 w-3.5" /> Launch AI Mock Interview
+        </a>
+      </div>
+
+      {/* ATS Resume Analyzer — discoverable from admin */}
+      <ATSAnalyzer studentId={student.id} cgpa={cgpa} />
     </div>
   )
 }

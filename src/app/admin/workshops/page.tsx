@@ -8,6 +8,7 @@ import { Calendar, Wrench, CheckCircle, XCircle, Clock } from 'lucide-react'
 export const dynamic = 'force-dynamic'
 
 const STATUS_BADGE: Record<string, string> = {
+  requested: 'badge badge-yellow',
   pending: 'badge badge-yellow',
   reviewing: 'badge badge-blue',
   approved: 'badge badge-green',
@@ -45,7 +46,7 @@ export default async function AdminWorkshopsPage() {
   }
 
   const allRequests = requests || []
-  const pending = allRequests.filter(r => r.status === 'pending' || r.status === 'reviewing')
+  const pending = allRequests.filter(r => ['requested', 'pending', 'reviewing'].includes(r.status))
   const resolved = allRequests.filter(r => r.status === 'approved' || r.status === 'declined' || r.status === 'scheduled')
 
   return (
@@ -58,7 +59,7 @@ export default async function AdminWorkshopsPage() {
       {/* KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { label: 'Pending', value: allRequests.filter(r => r.status === 'pending').length, cls: 'text-yellow-600', icon: Clock },
+          { label: 'Pending', value: allRequests.filter(r => r.status === 'pending' || r.status === 'requested').length, cls: 'text-yellow-600', icon: Clock },
           { label: 'Reviewing', value: allRequests.filter(r => r.status === 'reviewing').length, cls: 'text-blue-600', icon: Clock },
           { label: 'Approved', value: allRequests.filter(r => r.status === 'approved' || r.status === 'scheduled').length, cls: 'text-green-600', icon: CheckCircle },
           { label: 'Declined', value: allRequests.filter(r => r.status === 'declined').length, cls: 'text-red-500', icon: XCircle },
@@ -89,7 +90,7 @@ export default async function AdminWorkshopsPage() {
                         <span className={cn('text-[10px] font-semibold px-2 py-0.5 rounded-full',
                           STATUS_BADGE[r.status] || 'badge'
                         )}>{r.status}</span>
-                        <span className="text-xs text-muted-foreground">{TYPE_LABEL[r.type] || r.type}</span>
+                        <span className="text-xs text-muted-foreground">{TYPE_LABEL[r.kind || r.type] || r.kind || r.type}</span>
                       </div>
                       <p className="text-sm font-medium mt-1">{r.topic}</p>
                       {r.preferred_date && (
@@ -135,7 +136,7 @@ export default async function AdminWorkshopsPage() {
                 return (
                   <tr key={r.id} className="hover:bg-muted/30">
                     <td className="text-sm font-medium">{college?.name || college?.code}</td>
-                    <td className="text-sm">{TYPE_LABEL[r.type] || r.type}</td>
+                    <td className="text-sm">{TYPE_LABEL[r.kind || r.type] || r.kind || r.type}</td>
                     <td className="text-sm max-w-[200px] truncate">{r.topic}</td>
                     <td className="text-sm">{r.preferred_date ? formatDate(r.preferred_date) : '—'}</td>
                     <td><span className={cn(STATUS_BADGE[r.status] || 'badge')}>{r.status}</span></td>
